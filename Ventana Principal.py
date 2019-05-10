@@ -19,7 +19,6 @@ import pygame,sys
 from pygame import *
 from random import randint
 import winsound
-import csv
 import json
 import threading
 
@@ -27,44 +26,161 @@ Ventana = tkinter.Tk()
 pygame.init()
 Ventana.title("pyDakarDeath")
 Ventana.wm_state('zoomed')
-Ventana.config(bg='black')
+Ventana.config(bg='white')
+img = PhotoImage(file='Fondo.png')
+Logo = Label(Ventana, image=img)
+Logo.pack()
 
+ancho = 1366
+alto = 768
 
-#global
-#nivel = 1
-#Marcador = 0
-#Name = ''
+global nivel
 
-class Nombre_Jugador():
-        def __init__(self):
+nivel = 1
+
+#Esta funcion creara una ventana nueva cuando el jugador presione el boton de jugar y indicara en que nivel se encuentra el jugador
         
-                global Name, marcador
-                marcador = 0
-                pygame.font.init()
-                self.Canvas_Jugador = Canvas (Ventana, bg = "black", width = 250, height = 300)
-                self.Canvas_Jugador.pack()
 
-                self.dato=tkinter.StringVar()
-                self.Nombre = Entry(self.Canvas_Jugador, bd = 5, justify = LEFT, textvariable=self.dato)
-                self.Nombre.place(x=120,y=20)
+def Iniciar_nivel():
+        global nivel
+        pygame.font.init()
+        nivel_txt =str(nivel)
+        Level = pygame.display.set_mode((ancho, alto),pygame.FULLSCREEN)
+        pygame.display.set_caption ("pyDakarDeath")
+        Texto_nivel = pygame.font.Font (None, 80)
+        Texto = Texto_nivel.render("Nivel: " + str(nivel), 0,(230,126,41))
+        Texto_Name = pygame.font.Font (None, 80)
+        Texto_N = Texto_Name.render("Jugador: ", 0,(230,126,41))
+        Texto_indicacion = pygame.font.Font (None, 45)
+        Texto_in = Texto_indicacion.render("Presione [s] para empezar... ", 0,(230,126,41))
+
+        #Se le asigna un ciclo whie para que la ventana se cierre y comience el juego al presionar la tecla S
+
+
+        while True:
+                for event in pygame.event.get():
+                        if event.type == pygame.KEYDOWN:
+                                if event.key == pygame.K_s:
+                                        pygame.display.quit()
+                                        Jugar()
+                                        pygame.quit()
+
+
+                # Se dibuja los diferentes texto en la pantalla, indicandole sus coordenadas                  
+
+                Level.blit(Texto_N,(850,200))
+                Level.blit(Texto,(100,200))
+                Level.blit(Texto_in,(200,650))
+                pygame.display.update()
+
+class Jugador_1(pygame.sprite.Sprite):
+        def __init__(self, x, y):
+                pygame.sprite.Sprite.__init__(self)
+                self.carro_1 = pygame.image.load("Carro1.png")   
+                self.carro_1 = pygame.transform.scale(self.carro_1,(70,70))
+                self.rect = self.carro_1.get_rect()
+                self.rect.centerx = x
+                self.rect.centery = y
+                self.velocidad_nave = 6
+                self.negro = (0,0,0)
                 
-                self.Label_Jugador = Label (self.Canvas_Jugador,text = "Jugador:",fg = "white",bg = "black")
-                self.Label_Jugador.place (x=20,y=20)
+                self.lista_disparo = []
                 
-                self.B_Guardar = tkinter.Button(self.Canvas_Jugador, text="Guardar",fg="white",width=9,height=2,bg="GREEN",command=self.Lista_J, cursor='hand2')
-                self.B_Guardar.place(x=120,y=50)
-                self.B_Jugar2 = tkinter.Button(self.Canvas_Jugador, text="Jugar",fg="white",width=9,height=2,bg="GREEN",command=Iniciar_nivel, cursor='hand2')
-                self.B_Jugar2.place(x=120,y=100)
+                
+        #Llama la funcion proyectil para dibujar y darle la trayectoria al disparo del jugador       
 
-        def Lista_J(self):
-                global Name
-                archivo = open ("Jugadores.csv","a")
-                Name = self.dato.get()
-                archivo.write(Name)
-                archivo.write("\n")
-                print (Name)
-                archivo.close
+        #Se crea una superficie para dibujar los enemigos
+      
+        def Dibujar (self, superficie):
+                superficie.blit (self.carro_1, self.rect)
 
+
+
+def Jugar():
+        pygame.init()
+        
+        #Se minimixa la ventana principal
+        Ventana.withdraw()
+        #Se definen el tamaño de la pantalladel juego
+        juego = pygame.display.set_mode((ancho, alto),pygame.FULLSCREEN)
+        pygame.display.set_caption ("pyDakarDeath")
+
+        #Se crea una variable reloj 
+        reloj = pygame.time.Clock()
+
+        #se define una cancion de fondo para el juego
+        
+        #pygame.mixer.music.load("Cancion. verificar peso.mpeg")
+        #pygame.mixer.music.play(3)
+
+        #Se le asignan unas variables a funciones y a clases para ser llamadas cuando se necesiten
+        Jugador1 = Jugador_1(603, 550)
+        Jugador2 = Jugador_1(690, 550)
+        jugando = True
+        
+        
+        
+        # El while es donde se estara ejecutando cada una de las instrucciones de las clases para que el juego corra
+        while True:
+                tiempo = pygame.time.get_ticks()/1000
+
+               # Texto_puntaje = pygame.font.Font (None, 50)
+               # Texto_Pantalla = Texto_puntaje.render("Puntaje: " + str(marcador), 0,(255,255,255))
+                
+                #Se define el color de fondo, tiempo, posicion de la imagen de nave
+                juego.fill(Jugador1.negro)
+
+                # Se le asigna una variable al evento cuando se dejapresionada una tecla
+                keys = pygame.key.get_pressed()
+
+               # juego.blit(Jugador.Nave,(Jugador.posx,Jugador.posy))
+                reloj.tick(60)
+                
+                # Se define los eventos para los movimientos derecha, izquierda, arriba, abajo, y disparo de la nave
+                # y las coordenadas limites para que no se salga de la ventana
+
+                for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                                pygame.quit()
+                                sys.exit()
+                        if jugando == True:
+                                if event.type == pygame.KEYDOWN:
+                                        """
+                                        if event.key == pygame.K_SPACE:
+                                                #Se crean variables x,y para tomar la posicio actual de la nave, para asignarselo a la trayectoria del disparo
+                                                x = Jugador1.rect.centerx
+                                                y = Jugador2.rect.centery
+                                                Jugador.Disparar(x,y)
+                                                # Se define un sonido al disparo de la nave
+                                                #Disparo_son = pygame.mixer.Sound("disparo de nave.wav")
+                                                Disparo_son.play()
+                                                
+                                                """
+                # Se definen los eventos al presionar las teclas
+                                        
+                if keys[K_LEFT]:
+                                
+                                
+                        if Jugador1.rect.left > -1:
+                                
+                                Jugador1.rect.left -= Jugador1.velocidad_nave 
+                                
+                                
+                elif keys[K_RIGHT]:
+                                
+                                
+                        if Jugador1.rect.right < 1350:
+                                Jugador1.rect.right += Jugador1.velocidad_nave
+                                
+                                
+                elif keys[K_UP]:
+                        pass
+                elif keys[K_DOWN]:
+                        pass
+                Jugador1.Dibujar(juego)
+                Jugador2.Dibujar(juego)
+                pygame.display.update()
+        
 def Cerrar():
     if messagebox.askokcancel("Salir","¿Desea salir?"):
         print ("Ha cerrado la ventana")
@@ -75,9 +191,9 @@ def Salir():
 
 Ventana.protocol("WM_DELETE_WINDOW",Cerrar)        
 
-B_Salir = tkinter.Button(Ventana, text="Salir",fg="white",width=10,height=3,bg="GREEN",command=Salir, cursor='pirate')
+B_Salir = tkinter.Button(Ventana, text="Salir",fg="white",width=10,height=3,bg="red",command=Salir, cursor='pirate')
 B_Salir.place(x=642,y=600)
-B_Jugar = tkinter.Button(Ventana, text="Jugar",fg="white",width=10,height=3,bg="GREEN",command=Nombre_Jugador, cursor='hand2')
-B_Jugar.place(x=642,y=540)
+B_Jugar = tkinter.Button(Ventana, text="Jugar",fg="white",width=10,height=3,bg="red",command=Iniciar_nivel, cursor='pirate')
+B_Jugar.place(x=642,y=500)
 
 Ventana.mainloop()

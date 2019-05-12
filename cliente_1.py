@@ -25,12 +25,15 @@ import threading
 import pickle
 import time
 
+
 ipServidor = "localhost"
 puertoServidor = 9797
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((ipServidor, puertoServidor))
 print("Conectado con el servidor ---> %s:%s" %(ipServidor, puertoServidor))
+
+
 
 
 
@@ -42,11 +45,65 @@ Ventana.config(bg='white')
 img = PhotoImage(file='Fondo.png')
 Logo = Label(Ventana, image=img)
 Logo.pack()
-
-
-
 ancho = 1366
+
 alto = 768
+
+global nivel, posx_1, posx_2, posy_1, posy_2, datos
+nivel = 1
+posx_1 = 603
+posy_1 = 550
+posx_2 = 690
+posy_2 = 550
+datos = []
+
+
+
+         
+
+
+
+class Jugador_1(pygame.sprite.Sprite):
+        def __init__(self, x, y):
+                pygame.sprite.Sprite.__init__(self)
+                self.carro_1 = pygame.image.load("Carro1.png")   
+                self.carro_1 = pygame.transform.scale(self.carro_1,(70,70))
+                self.rect = self.carro_1.get_rect()
+                self.rect.centerx = x
+                self.rect.centery = y
+                self.velocidad_nave = 6
+                self.negro = (0,0,0)
+                
+                self.lista_disparo = []
+
+        #Llama la funcion proyectil para dibujar y darle la trayectoria al disparo del jugador       
+
+        #Se crea una superficie para dibujar los enemigos
+      
+        def Dibujar (self, superficie):
+                superficie.blit (self.carro_1, self.rect)
+        
+
+
+class Jugador_2(pygame.sprite.Sprite):
+        def __init__(self,x, y):
+                pygame.sprite.Sprite.__init__(self)
+                self.carro_1 = pygame.image.load("Carro1.png")   
+                self.carro_1 = pygame.transform.scale(self.carro_1,(70,70))
+                self.rect = self.carro_1.get_rect()
+                self.rect.x = x
+                self.rect.y = y
+                self.velocidad_nave = 6
+                self.negro = (0,0,0)
+                
+                self.lista_disparo = []               
+                
+        #Llama la funcion proyectil para dibujar y darle la trayectoria al disparo del jugador       
+
+        #Se crea una superficie para dibujar los enemigos
+      
+        def Dibujar (self, superficie):
+                superficie.blit (self.carro_1, self.rect)
 
 
 
@@ -85,52 +142,14 @@ def Iniciar_nivel():
                 Level.blit(Texto_in,(200,650))
                 pygame.display.update()
 
-class Jugador_1(pygame.sprite.Sprite):
-        def __init__(self, x, y):
-                pygame.sprite.Sprite.__init__(self)
-                self.carro_1 = pygame.image.load("Carro1.png")   
-                self.carro_1 = pygame.transform.scale(self.carro_1,(70,70))
-                self.rect = self.carro_1.get_rect()
-                self.rect.centerx = x
-                self.rect.centery = y
-                self.velocidad_nave = 6
-                self.negro = (0,0,0)
-                
-                self.lista_disparo = []
 
-        #Llama la funcion proyectil para dibujar y darle la trayectoria al disparo del jugador       
 
-        #Se crea una superficie para dibujar los enemigos
-      
-        def Dibujar (self, superficie):
-                superficie.blit (self.carro_1, self.rect)
-        
-class Jugador_2(pygame.sprite.Sprite):
-        def __init__(self,x, y):
-                pygame.sprite.Sprite.__init__(self)
-                self.carro_1 = pygame.image.load("Carro1.png")   
-                self.carro_1 = pygame.transform.scale(self.carro_1,(70,70))
-                self.rect = self.carro_1.get_rect()
-                self.rect.centerx = x
-                self.rect.centery = y
-                self.velocidad_nave = 6
-                self.negro = (0,0,0)
-                
-                self.lista_disparo = []
-                
-                
-        #Llama la funcion proyectil para dibujar y darle la trayectoria al disparo del jugador       
-
-        #Se crea una superficie para dibujar los enemigos
-      
-        def Dibujar (self, superficie):
-                superficie.blit (self.carro_1, self.rect)
 
 
 
 def Jugar():
         pygame.init()
-        global posx_1, posx_2, posy_1, posy_2, Jugador1, Jugador2, datos
+        global posx_1, posx_2, posy_1, posy_2, datos
         #Se minimixa la ventana principal
         Ventana.withdraw()
         #Se definen el tamaño de la pantalladel juego
@@ -149,23 +168,26 @@ def Jugar():
         
         jugando = True
         
+        Jugador1 = Jugador_1(posx_1, posy_1)
         
         
         # El while es donde se estara ejecutando cada una de las instrucciones de las clases para que el juego corra
         while True:
                 tiempo = pygame.time.get_ticks()/1000
-
                 datos = [posx_1, posx_2, posy_1, posy_2]
                 mensaje1 = pickle.dumps(datos)
-                s.sendall(mensaje1)
-                
+                s.sendall(mensaje1)        
                 data = s.recv(1024)
                 data_serv = pickle.loads(data)
                 x = list(data_serv)
                 posx_2 = x[1]
                 posy_2 = x[3]
-                Jugador2.rect.centerx = posx_2
-                Jugador2.rect.centery = posy_2 
+                corroborar = ("Puta sal funciona")
+                serv = pickle.dumps(corroborar)
+                s.sendall(serv)
+                Jugador2 = Jugador_2(posx_2, posy_2)
+               
+                
                 
                # Texto_puntaje = pygame.font.Font (None, 50)
                # Texto_Pantalla = Texto_puntaje.render("Puntaje: " + str(marcador), 0,(255,255,255))
@@ -241,15 +263,9 @@ B_Salir.place(x=642,y=600)
 B_Jugar = tkinter.Button(Ventana, text="Jugar",fg="white",width=10,height=3,bg="red",command=Iniciar_nivel, cursor='pirate')
 B_Jugar.place(x=642,y=500)
 
-global nivel, posx_1, posx_2, posy_1, posy_2, Jugador, Jugador2, datos
-nivel = 1
-posx_1 = 603
-posy_1 = 550
-posx_2 = 690
-posy_2 = 550
-Jugador1 = Jugador_1(posx_1, posy_1)
-Jugador2 = Jugador_2(posx_2, posy_2)
-datos = []
+
+
+
 
 Ventana.mainloop()
 

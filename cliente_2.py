@@ -47,7 +47,13 @@ Logo.pack()
 ancho = 1366
 alto = 768
 
-
+global nivel, posx_1, posx_2, posy_1, posy_2, Jugador1, Jugador2, datos
+nivel = 1
+posx_1 = 603
+posy_1 = 550
+posx_2 = 690
+posy_2 = 550
+datos = []
 
 #Esta funcion creara una ventana nueva cuando el jugador presione el boton de jugar y indicara en que nivel se encuentra el jugador
         
@@ -129,7 +135,7 @@ class Jugador_2(pygame.sprite.Sprite):
 
 def Jugar():
         pygame.init()
-        global posx_1, posx_2, posy_1, posy_2, Jugador1, Jugador2, datos
+        global posx_1, posx_2, posy_1, posy_2, datos
         #Se minimixa la ventana principal
         Ventana.withdraw()
         #Se definen el tamaño de la pantalladel juego
@@ -148,7 +154,8 @@ def Jugar():
         
         jugando = True
         
-        
+        Jugador1 = Jugador_1(posx_1, posy_1)
+        Jugador2 = Jugador_2(posx_2, posy_2)
         
         # El while es donde se estara ejecutando cada una de las instrucciones de las clases para que el juego corra
         while True:
@@ -157,20 +164,22 @@ def Jugar():
                 datos = [posx_1, posx_2, posy_1, posy_2]
                 mensaje1 = pickle.dumps(datos)
                 s.sendall(mensaje1)
-
                 data = s.recv(1024)
                 data_serv = pickle.loads(data)
                 x = list(data_serv)
                 posx_1 = x[0]
                 posy_1 = x[2]
+
+        
                 Jugador1.rect.centerx = posx_1
-                Jugador1.rect.centery = posy_1 
+                Jugador1.rect.centery = posy_1
+        
                 
                # Texto_puntaje = pygame.font.Font (None, 50)
                # Texto_Pantalla = Texto_puntaje.render("Puntaje: " + str(marcador), 0,(255,255,255))
                 
                 #Se define el color de fondo, tiempo, posicion de la imagen de nave
-                juego.fill(Jugador1.negro)
+                juego.fill(Jugador2.negro)
 
                 # Se le asigna una variable al evento cuando se dejapresionada una tecla
                 keys = pygame.key.get_pressed()
@@ -240,15 +249,9 @@ B_Salir.place(x=642,y=600)
 B_Jugar = tkinter.Button(Ventana, text="Jugar",fg="white",width=10,height=3,bg="red",command=Iniciar_nivel, cursor='pirate')
 B_Jugar.place(x=642,y=500)
 
-global nivel, posx_1, posx_2, posy_1, posy_2, Jugador, Jugador2, datos
-nivel = 1
-posx_1 = 603
-posy_1 = 550
-posx_2 = 690
-posy_2 = 550
-Jugador1 = Jugador_1(posx_1, posy_1)
-Jugador2 = Jugador_2(posx_2, posy_2)
-datos = []
+
+
+
 
 Ventana.mainloop()
 

@@ -91,8 +91,8 @@ class Jugador_2(pygame.sprite.Sprite):
                 self.carro_1 = pygame.image.load("Carro1.png")   
                 self.carro_1 = pygame.transform.scale(self.carro_1,(70,70))
                 self.rect = self.carro_1.get_rect()
-                self.rect.x = x
-                self.rect.y = y
+                self.rect.centerx = x
+                self.rect.centery = y
                 self.velocidad_nave = 6
                 self.negro = (0,0,0)
                 
@@ -169,7 +169,7 @@ def Jugar():
         jugando = True
         
         Jugador1 = Jugador_1(posx_1, posy_1)
-        
+        Jugador2 = Jugador_2(posx_2, posy_2)
         
         # El while es donde se estara ejecutando cada una de las instrucciones de las clases para que el juego corra
         while True:
@@ -182,10 +182,9 @@ def Jugar():
                 x = list(data_serv)
                 posx_2 = x[1]
                 posy_2 = x[3]
-                corroborar = ("Puta sal funciona")
                 serv = pickle.dumps(corroborar)
                 s.sendall(serv)
-                Jugador2 = Jugador_2(posx_2, posy_2)
+                
                
                 
                 

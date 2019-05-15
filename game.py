@@ -2,6 +2,11 @@ import pygame
 import socket
 #from network import Network
 import pickle
+import tkinter
+
+
+ancho = 1366
+alto = 768
 
 class Network():
 
@@ -71,7 +76,7 @@ class Game:
         self.width = w
         self.height = h
         self.player = Player(50, 50)
-        self.player2 = Player(100,100)
+        self.player2 = Player(200,200)
         self.canvas = Canvas(self.width, self.height, "Testing...")
 
     def run(self):
@@ -90,7 +95,7 @@ class Game:
             keys = pygame.key.get_pressed()
 
             if keys[pygame.K_RIGHT]:
-                if self.player.x <= self.width - self.player.velocity:
+                if self.player.x <= 1245 - self.player.velocity:
                     self.player.move(0)
 
             if keys[pygame.K_LEFT]:
@@ -102,7 +107,7 @@ class Game:
                     self.player.move(2)
 
             if keys[pygame.K_DOWN]:
-                if self.player.y <= self.height - self.player.velocity:
+                if self.player.y <= 600 - self.player.velocity:
                     self.player.move(3)
 
             # Send Network Stuff
@@ -137,10 +142,11 @@ class Game:
 class Canvas:
 
     def __init__(self, w, h, name="None"):
-        self.width = w
-        self.height = h
-        self.screen = pygame.display.set_mode((w,h))
-        pygame.display.set_caption(name)
+        #Se minimixa la ventana principal
+        #self.Ventana.withdraw()
+        #Se definen el tamaño de la pantalladel juego
+        self.screen = pygame.display.set_mode((ancho, alto),pygame.FULLSCREEN)
+        pygame.display.set_caption ("pyDakarDeath")
 
     @staticmethod
     def update():
@@ -149,16 +155,17 @@ class Canvas:
     def draw_text(self, text, size, x, y):
         pygame.font.init()
         font = pygame.font.SysFont("comicsans", size)
-        render = font.render(text, 1, (0,0,0))
 
         self.screen.draw(render, (x,y))
 
     def get_canvas(self):
+        pass
         return self.screen
 
     def draw_background(self):
+        pass
         self.screen.fill((255,255,255))
 
 if __name__ == "__main__":
-    g = Game(500,500)
+    g = Game(ancho,alto)
     g.run()

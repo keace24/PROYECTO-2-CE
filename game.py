@@ -16,6 +16,7 @@ alto = 768
 
 pygame.init()
 
+"""
 class Network():
 
     def __init__(self):
@@ -33,10 +34,10 @@ class Network():
         recibir_1 = pickle.loads(recibir) 
         return recibir_1
     def send(self, data):
-        """
+        
         :param data: str
         :return: str
-        """
+        
         try:
             datos = data
             datos_1 = pickle.dumps(datos) 
@@ -46,7 +47,7 @@ class Network():
             return reply_1
         except socket.error as e:
             return str(e)
-
+"""
 class mina(pygame.sprite.Sprite):
         def __init__(self):
                 pygame.sprite.Sprite.__init__(self)
@@ -68,45 +69,40 @@ class mina(pygame.sprite.Sprite):
                 #self.Rango()
                 self.Rango_x()
 
-        # Origina numeros al azar para el eje x para que las estrellas aparescan en distintios lugares
+        # Origina numeros al azar para el eje x, y para que las minas aparescan en distintios lugares
         def Rango_x(self):
                 global Num_x, Num_y
                 Num_x = (randint(0,1200))
                 Num_y = (randint(0,700))
                 
         
-
-        #Define el tiempo de aparicion de cada una de las estrellas
-
-        #def Rango(self):
                 
-
-        
-                
-        #Agrega las estrellas creadas en una lista        
+        #Agrega las minas creadas en una lista        
         def aparicion(self,x,y):
-                global contador
                 Aparicion = mina()
                 self.lista_mina.append(Aparicion)
-                contador += 1
+        
                  
                
-        # Se dibuja en la ventana las estrellas
+        # Se dibuja en la ventana las minas
         def Dibujar (self, superficie):
                 superficie.blit (self.imagen_mina, self.rect)
 
 
-class Player():
+class Player(pygame.sprite.Sprite):
     width = height = 50
 
-    def __init__(self, startx, starty, color=(255,0,0)):
-        self.x = startx
-        self.y = starty
+    def __init__(self, startx, starty):
+        pygame.sprite.Sprite.__init__(self)
+        self.imagen_Jugador = pygame.image.load ("carro1.png")
+        self.imagen_Jugador = pygame.transform.scale(self.imagen_Jugador,(45,45))
+        self.rect = self.imagen_Jugador.get_rect()
+        self.rect.x = startx
+        self.rect.y = starty
         self.velocity = 2
-        self.color = color
 
-    def draw(self, g):
-        pygame.draw.rect(g, self.color ,(self.x, self.y, self.width, self.height), 0)
+    def Dibujar(self, superficie):
+        superficie.blit (self.imagen_Jugador, self.rect)
 
     def move(self, dirn):
         """
@@ -115,13 +111,13 @@ class Player():
         """
 
         if dirn == 0:
-            self.x += self.velocity
+            self.rect.x += self.velocity
         elif dirn == 1:
-            self.x -= self.velocity
+            self.rect.x -= self.velocity
         elif dirn == 2:
-            self.y -= self.velocity
+            self.rect.y -= self.velocity
         else:
-            self.y += self.velocity
+            self.rect.y += self.velocity
 
 
 class Game:
@@ -130,12 +126,13 @@ class Game:
         pygame.init()
         self.screen = pygame.display.set_mode((ancho, alto),pygame.FULLSCREEN)
         pygame.display.set_caption ("pyDakarDeath")
-        
-        self.net = Network()
+        self.fondo = pygame.image.load("mapa.png").convert()
+        self.fondo = pygame.transform.scale(self.fondo,(ancho,alto))
+        #self.net = Network()
         self.width = w
         self.height = h
-        self.player = Player(50, 50)
-        self.player2 = Player(200,200)
+        self.player = Player(590, 700)
+        self.player2 = Player(690,700)
         self.MINAS = mina()
 
     def run(self):
@@ -157,51 +154,54 @@ class Game:
             keys = pygame.key.get_pressed()
 
             if keys[pygame.K_RIGHT]:
-                if self.player.x <= 1320 - self.player.velocity:
+                if self.player.rect.x <= 1320 - self.player.velocity:
                     self.player.move(0)
 
             if keys[pygame.K_LEFT]:
-                if self.player.x >= self.player.velocity:
+                if self.player.rect.x >= self.player.velocity:
                     self.player.move(1)
 
             if keys[pygame.K_UP]:
-                if self.player.y >= self.player.velocity:
+                if self.player.rect.y >= self.player.velocity:
                     self.player.move(2)
 
             if keys[pygame.K_DOWN]:
-                if self.player.y <= 723 - self.player.velocity:
+                if self.player.rect.y <= 723 - self.player.velocity:
                     self.player.move(3)
 
             # Send Network Stuff
-            self.player2.x, self.player2.y = self.parse_data(self.send_data())
+            #self.player2.rect.x, self.player2.rect.y = self.parse_data(self.send_data())
 
             # Update Canvas
-            self.player.draw(self.screen)
-            self.player2.draw(self.screen)
+            self.screen.blit(self.fondo, (0, 0))
+            self.player.Dibujar(self.screen)
+            self.player2.Dibujar(self.screen)
             self.MINAS.comportamiento(self.tiempo)
-
-            if (randint(0,100) == self.MINAS.aparicion_mina):
+            
+            if (randint(0,400) == self.MINAS.aparicion_mina):
                         x = self.MINAS.rect.left
                         y = self.MINAS.rect.top
                         self.MINAS.aparicion(x,y)
-                        for x in self.MINAS.lista_mina:
-                                     print("Hola")
-                                     x.Dibujar(self.screen)
+                        
                                     
            # if len(self.MINAS.lista_mina) > 0:
-                                 
+            if len(self.MINAS.lista_mina) > 0:
+                for x in self.MINAS.lista_mina:
+                                     print("hola")
+                                     x.Dibujar(self.screen)
+                                                  
                                                           
             pygame.display.update()
-                       
+            pygame.display.flip()           
 
         pygame.quit()
-
+"""
     def send_data(self):
-        """
+        
         Send position to server
         :return: None
-        """
-        data = str(self.net.id) + ":" + str(self.player.x) + "," + str(self.player.y)
+        
+        data = str(self.net.id) + ":" + str(self.player.rect.x) + "," + str(self.player.rect.y)
         reply = self.net.send(data)
         return reply
 
@@ -214,15 +214,7 @@ class Game:
             return 0,0
 
 
-
-
-
-   # def draw_text(self, text, size, x, y):
-    #    pygame.font.init()
-     #   font = pygame.font.SysFont("pyDakarDeath", size)
-
-      #  self.screen.draw(render, (x,y))
-
+"""
 
 
 if __name__ == "__main__":

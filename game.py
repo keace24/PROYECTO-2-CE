@@ -6,8 +6,10 @@ import tkinter
 from random import randint
 import threading
 import time
+from tkinter import *
+from tkinter import messagebox
 
-global Num_x, Num_y, contador, mina, dibujar_mina, Imagen_Disparo_Jugador, minutos
+global Num_x, Num_y, contador, mina, dibujar_mina, Imagen_Disparo_Jugador, minutos, reply_1
 Num_x = 0
 Num_y = 0
 contador = 0
@@ -16,15 +18,33 @@ dibujar_mina = 0
 Imagen_Disparo_Jugador = "proyectil_v2.png"
 minutos = 0
 segundos = 0
+reply_1 = ""
 
 ancho = 1366
 alto = 768
 
 pygame.init()
 
+Ventana = tkinter.Tk()
+pygame.init()
+Ventana.title ("Space Invaders") 
+Ventana.wm_state('zoomed') 
+Ventana.config(bg='white')
+img = PhotoImage(file='Fondo.png')
+Logo = Label(Ventana, image=img)
+Logo.pack()
+
+
+def Cerrar():
+        if messagebox.askokcancel("Salir", "¿Desea salir del juego?"):
+            print ("Ha cerrado la ventana") 
+            Ventana.destroy() 
+def Salir():
+        if messagebox.askyesno("Salir", "¿Desea salir del juego?"):
+            Ventana.destroy()
 
 class Network():
-    global mina, dibujar_mina
+    global mina, dibujar_mina, reply_1
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.host = "localhost" # For this to work on your machine this must be equal to the ipv4 address of the machine running the server
@@ -33,11 +53,12 @@ class Network():
         self.port = 5555            
         self.addr = (self.host, self.port)
         self.id = self.connect()
-
+        print(self.id)
     def connect(self):
         self.client.connect(self.addr)
         recibir = self.client.recv(2048)
         recibir_1 = pickle.loads(recibir)
+        
         return recibir_1
     def send(self, data):
         datos = data
@@ -46,15 +67,19 @@ class Network():
         reply = self.client.recv(2048)
         reply_1 = pickle.loads(reply)
         #print(type(reply_1))
-        
+        """
         if isinstance(reply_1, list):
             if self.id != self.id:
                 return reply_1
+        """        
                 
-                
-        elif isinstance(reply_1, str):
+        if isinstance(reply_1, str):
+            print (reply_1)
             return reply_1
-        
+        """
+        else:
+            reply_1 = ""
+          """  
 
 class mina(pygame.sprite.Sprite):
         def __init__(self):
@@ -102,7 +127,7 @@ class Proyectil(pygame.sprite.Sprite):
                 self.imagen_proyectil = pygame.image.load (imagen)
                 #self.imagen_proyectil = pygame.transform.scale(self.imagen_proyectil,(50,45))
                 self.rect = self.imagen_proyectil.get_rect()
-                self.v_disparo = 13
+                self.v_disparo = 2
                 self.rect.top = posy
                 self.rect.left = posx
                 self.disparo_personaje = personaje
@@ -163,6 +188,8 @@ class Player(pygame.sprite.Sprite):
 
 
 class Game:
+    ancho = 1366
+    alto = 768
     global Num_x, Num_y, contador, dibujar_mina, minutos, segundos
     def __init__(self, w, h):
         def Crono():
@@ -263,7 +290,7 @@ class Game:
                         values=[self.net.id, "Mina", Num_x, Num_y, dibujar_mina]
                         reply2 = self.net.send(values)
                         return reply2
-                           """
+                          """ 
             if len(self.player.lista_disparo) > 0:
                     for x in self.player.lista_disparo:
                         x.Dibujar(self.screen)
@@ -303,8 +330,17 @@ class Game:
 
 
 
+def iniciar():
+
+    if __name__ == "__main__":
+            g = Game(ancho,alto)
+            g.run()
+
+B_Salir = tkinter.Button(Ventana, text="Salir",fg="white",width=10,height=3,bg="GREEN",command=Salir, cursor='pirate')
+B_Salir.place(x=642,y=600)
+B_Jugar = tkinter.Button(Ventana, text="Jugar",fg="white",width=10,height=3,bg="GREEN",command=iniciar, cursor='hand2')
+B_Jugar.place(x=642,y=540)
 
 
-if __name__ == "__main__":
-    g = Game(ancho,alto)
-    g.run()
+
+Ventana.mainloop()

@@ -19,6 +19,7 @@ print("Waiting for a connection")
 
 currentId = "0"
 pos = ["0:50,50", "1:100,100"]
+mina = []
 def threaded_client(conn):
     global currentId, pos
     env = currentId
@@ -30,22 +31,25 @@ def threaded_client(conn):
         try:
             data = conn.recv(2048)
             reply = pickle.loads(data)
-            if not data:
-                conn.send(pickle.dumps("Goodbye"))
-                break
+            print(reply)
+            if reply[1] == "Mina":
+                mina = reply
+                reply_ = pickle.dumps(mina)
+                conn.sendall(reply_)
             else:
                 print("Recieved: " + reply)
                 arr = reply.split(":")
                 id = int(arr[0])
                 pos[id] = reply
                 
+                
                 if id == 0: nid = 1
                 if id == 1: nid = 0
 
                 reply = pos[nid][:]
                 print("Sending: " + reply)
-            reply_ = pickle.dumps(reply)
-            conn.sendall(reply_)
+                reply_ = pickle.dumps(reply)
+                conn.sendall(reply_)
         except:
             break
 

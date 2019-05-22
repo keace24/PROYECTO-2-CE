@@ -9,7 +9,7 @@ import time
 from tkinter import *
 from tkinter import messagebox
 
-global Num_x, Num_y, contador, mina, dibujar_mina, Imagen_Disparo_Jugador, minutos, reply_1
+global Num_x, Num_y, contador, mina, dibujar_mina, Imagen_Disparo_Jugador, minutos, reply_1, tiempo_pausa, segundos
 Num_x = 0
 Num_y = 0
 contador = 0
@@ -19,6 +19,7 @@ Imagen_Disparo_Jugador = "proyectil_v2.png"
 minutos = 0
 segundos = 0
 reply_1 = ""
+tiempo_pausa = 0
 
 ancho = 1366
 alto = 768
@@ -67,19 +68,16 @@ class Network():
         reply = self.client.recv(2048)
         reply_1 = pickle.loads(reply)
         #print(type(reply_1))
-        """
+        
         if isinstance(reply_1, list):
             if self.id != self.id:
                 return reply_1
-        """        
+               
                 
         if isinstance(reply_1, str):
             print (reply_1)
             return reply_1
-        """
-        else:
-            reply_1 = ""
-          """  
+        
 
 class mina(pygame.sprite.Sprite):
         def __init__(self):
@@ -170,10 +168,7 @@ class Player(pygame.sprite.Sprite):
         superficie.blit (self.imagen_Jugador, self.rect)
 
     def move(self, dirn):
-        """
-        :param dirn: 0 - 3 (right, left, up, down)
-        :return: None
-        """
+        
 
         if dirn == 0:
             self.rect.x += self.velocity
@@ -217,7 +212,21 @@ class Game:
         hilo.start()
 
     
-    
+    def pausa(self):
+                global tiempo_pausa, segundos
+                pygame.font.init()
+                Texto_Pausa = pygame.font.Font (None, 45)
+                Texto_Pausa = Texto_Pausa.render("Juego Pausado ", 0,(255,255,255))
+                tiempo_pausa = segundos
+                pausado = True
+                while pausado:
+                        for event in pygame.event.get():
+                                if event.type == pygame.KEYDOWN:
+                                                        if event.key == pygame.K_e:
+                                                                pausado = False
+                                                                segundos = tiempo_pausa
+                        self.screen.blit(Texto_Pausa,(550,500))
+                      #  pygame.display.update()
     
     def run(self):
         global contador, minutos, segundos
@@ -228,11 +237,12 @@ class Game:
             self.screen.fill((255,255,255))
             clock.tick(60)
             self.tiempo = pygame.time.get_ticks()/1000
-            #self.crono = pygame.time.get_ticks()/1000
+            
 
             Texto_puntaje = pygame.font.Font (None, 50)
             Texto_Pantalla = Texto_puntaje.render("Tiempo " + str(minutos) + " : " + str(int(segundos)), 0,(255,255,255))
-        
+
+            
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -240,8 +250,6 @@ class Game:
 
                 if event.type == pygame.KEYDOWN:
                                         if event.key == pygame.K_SPACE:
-                                            
-                                            print("Hola")
                                             #Se crean variables x,y para tomar la posicio actual de la nave, para asignarselo a la trayectoria del disparo
                                             x = self.player.rect.x + 15
                                             y = self.player.rect.y
@@ -249,7 +257,19 @@ class Game:
                                             # Se define un sonido al disparo de la nave
                                             #Disparo_son = pygame.mixer.Sound("disparo de nave.wav")
                                             #Disparo_son.play()
-                    
+                                        if event.key == pygame.K_p:
+                                                self.pausa()
+                                                
+                                        """
+                                                Menu = tkinter.Tk()
+                                                Menu.geometry("300x300+0+0")
+                                                Menu.title ("Menú")  
+                                                Menu.config(bg='white')
+                                                Menu.wm_attributes("-topmost", 1)
+                                                Menu.pack()
+                                                
+                                                """
+                                        
 
             keys = pygame.key.get_pressed()
             
@@ -304,18 +324,15 @@ class Game:
                 for x in self.MINAS.lista_mina:
                                      x.Dibujar(self.screen)
                                      
-            self.screen.blit(Texto_Pantalla,(20,20))                                                            
-                                                          
+            self.screen.blit(Texto_Pantalla,(20,20))
+                    
             pygame.display.update()
             pygame.display.flip()           
 
         pygame.quit()
 
     def send_data(self):
-        """
-        Send position to server
-        :return: None
-        """
+
         data = str(self.net.id) + ":" + str(self.player.rect.x) + "," + str(self.player.rect.y)
         reply = self.net.send(data)
         return reply

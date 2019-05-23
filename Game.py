@@ -9,11 +9,11 @@ import time
 from tkinter import *
 from tkinter import messagebox
 
-global Num_x, Num_y, contador, mina, dibujar_mina, Imagen_Disparo_Jugador, minutos, reply_1, tiempo_pausa, segundos, Jugador1, Jugador2, vida_player, vida_player2
+global Num_x, Num_y, contador, mina, dibujar_mina, Imagen_Disparo_Jugador, minutos, reply_1, tiempo_pausa, segundos, Jugador1, Jugador2, vida_player, vida_player2, disparo_2
 Num_x = 0
 Num_y = 0
 contador = 0
-mina = []
+mina = False
 dibujar_mina = 0
 Imagen_Disparo_Jugador = "proyectil_v2.png"
 minutos = 0
@@ -22,6 +22,7 @@ reply_1 = ""
 tiempo_pausa = 0
 vida_player = 100
 vida_player2 = 100
+disparo_2 = False
 
 ancho = 1366
 alto = 768
@@ -47,7 +48,7 @@ def Salir():
             Ventana.destroy()
 
 class Network():
-    global mina, dibujar_mina, reply_1
+    global reply_1
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.host = "localhost" # For this to work on your machine this must be equal to the ipv4 address of the machine running the server
@@ -67,15 +68,7 @@ class Network():
         datos_1 = pickle.dumps(datos) 
         self.client.send(datos_1)
         reply = self.client.recv(2048)
-        reply_1 = pickle.loads(reply)
-        #print(type(reply_1))
-        
-        if isinstance(reply_1, list):
-            if self.id != self.id:
-                datos = reply_1
-
-               
-                
+        reply_1 = pickle.loads(reply)        
         if isinstance(reply_1, str):
             return reply_1
         
@@ -233,7 +226,7 @@ class Game:
                       #  pygame.display.update()
     
     def run(self):
-        global contador, minutos, segundos, Jugador1, Jugador2, vida_player, vida_player2
+        global contador, minutos, segundos, Jugador1, Jugador2, vida_player, vida_player2, disparo_2, mina
         clock = pygame.time.Clock()
         run = True
         #self.Esperando_Jugadores()
@@ -258,6 +251,7 @@ class Game:
                                             x = self.player.rect.x + 15
                                             y = self.player.rect.y
                                             self.player.Disparar(x,y)
+                                            disparo_2 = True
                                             # Se define un sonido al disparo de la nave
                                             #Disparo_son = pygame.mixer.Sound("disparo de nave.wav")
                                             #Disparo_son.play()
@@ -296,7 +290,7 @@ class Game:
                     self.player.move(3)
 
             # Send Network Stuff
-            self.player2.rect.x, self.player2.rect.y, segundos, minutos, vida_player2 = self.parse_data(self.send_data())
+            self.player2.rect.x, self.player2.rect.y, segundos, minutos, disparo_2, mina = self.parse_data(self.send_data())
 
             # Update Canvas
             self.screen.blit(self.fondo, (0, 0))
@@ -310,11 +304,9 @@ class Game:
                         x = self.MINAS.rect.left
                         y = self.MINAS.rect.top
                         self.MINAS.aparicion(x,y)
-                        """
-                        values=[self.net.id, "Mina", Num_x, Num_y, dibujar_mina]
-                        reply2 = self.net.send(values)
-                        return reply2
-                """
+                       # mina = True
+        
+                
             if len(self.player.lista_disparo) > 0:
                     for x in self.player.lista_disparo:
                         x.Dibujar(self.screen)
@@ -329,6 +321,22 @@ class Game:
                                                 print(vida_player)
                                                 self.player.lista_disparo.remove(x)
             #if vida_player == 0:
+
+
+            if disparo_2 == True:
+                x = self.player2.rect.x + 15
+                y = self.player2.rect.y
+                self.player2.Disparar(x,y)
+                disparo_2 = False
+
+
+            if len(self.player.lista_disparo) > 0:
+                    for x in self.player2.lista_disparo:
+                        x.Dibujar(self.screen)
+                        x.Trayecto()
+                        if x.rect.top < -20:
+                                self.player2.lista_disparo.remove(x)
+                
                     
                                 
            # if len(self.MINAS.lista_mina) > 0:
@@ -344,7 +352,7 @@ class Game:
 
     def send_data(self):
 
-        data = str(self.net.id) + ":" + str(self.player.rect.x) + "," + str(self.player.rect.y) + "," + str(segundos) + "," + str(minutos) + "," + str(vida_player)
+        data = str(self.net.id) + ":" + str(self.player.rect.x) + "," + str(self.player.rect.y) + "," + str(segundos) + "," + str(minutos) + "," + str(disparo_2) + "," + str(mina)
         reply = self.net.send(data)
         return reply
 
@@ -352,7 +360,7 @@ class Game:
     def parse_data(data):
         try:
             d = data.split(":")[1].split(",")
-            return int(d[0]), int(d[1]), int(d[2]), int(d[3]), int(d[4])
+            return int(d[0]), int(d[1]), int(d[2]), int(d[3]), bool(d[4]), bool(d[5])
         except:
             return 0,0
 

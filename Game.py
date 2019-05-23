@@ -9,11 +9,11 @@ import time
 from tkinter import *
 from tkinter import messagebox
 
-global Num_x, Num_y, contador, mina, dibujar_mina, Imagen_Disparo_Jugador, minutos, reply_1, tiempo_pausa, segundos, Jugador1, Jugador2, vida_player, vida_player2, disparo_2
+global Num_x, Num_y, contador, mina_indicacion, dibujar_mina,Imagen_Disparo_Jugador, minutos, reply_1, tiempo_pausa, segundos, Jugador1, Jugador2, vida_player, vida_player2, disparo_2
 Num_x = 0
 Num_y = 0
 contador = 0
-mina = False
+mina_indicacion = 0
 dibujar_mina = 0
 Imagen_Disparo_Jugador = "proyectil_v2.png"
 minutos = 0
@@ -22,7 +22,7 @@ reply_1 = ""
 tiempo_pausa = 0
 vida_player = 100
 vida_player2 = 100
-disparo_2 = False
+disparo_2 = 0
 
 ancho = 1366
 alto = 768
@@ -226,7 +226,7 @@ class Game:
                       #  pygame.display.update()
     
     def run(self):
-        global contador, minutos, segundos, Jugador1, Jugador2, vida_player, vida_player2, disparo_2, mina
+        global contador, minutos, segundos, Jugador1, Jugador2, vida_player, vida_player2, disparo_2, mina_indicacion, Num_x, Num_y
         clock = pygame.time.Clock()
         run = True
         #self.Esperando_Jugadores()
@@ -251,7 +251,7 @@ class Game:
                                             x = self.player.rect.x + 15
                                             y = self.player.rect.y
                                             self.player.Disparar(x,y)
-                                            disparo_2 = True
+                                            disparo_2 = 1
                                             # Se define un sonido al disparo de la nave
                                             #Disparo_son = pygame.mixer.Sound("disparo de nave.wav")
                                             #Disparo_son.play()
@@ -290,7 +290,7 @@ class Game:
                     self.player.move(3)
 
             # Send Network Stuff
-            self.player2.rect.x, self.player2.rect.y, segundos, minutos, disparo_2, mina = self.parse_data(self.send_data())
+            self.player2.rect.x, self.player2.rect.y, segundos, minutos, disparo_2, mina_indicacion, Num_x, Num_y = self.parse_data(self.send_data())
 
             # Update Canvas
             self.screen.blit(self.fondo, (0, 0))
@@ -298,13 +298,13 @@ class Game:
             self.player2.Dibujar(self.screen)
             self.MINAS.comportamiento(self.tiempo)
 
-            dibujar_mina = (randint(0,400))
+            dibujar_mina = (randint(0,10000))
             
             if dibujar_mina == self.MINAS.aparicion_mina:
                         x = self.MINAS.rect.left
                         y = self.MINAS.rect.top
                         self.MINAS.aparicion(x,y)
-                       # mina = True
+                        mina_indicacion = 1
         
                 
             if len(self.player.lista_disparo) > 0:
@@ -317,17 +317,23 @@ class Game:
                         else:
                                 if x.rect.colliderect(self.player2.rect):
                                                 vida_player -= 5
-                                                print('hola')
                                                 print(vida_player)
                                                 self.player.lista_disparo.remove(x)
             #if vida_player == 0:
 
 
-            if disparo_2 == True:
+            if disparo_2 == 1:
                 x = self.player2.rect.x + 15
                 y = self.player2.rect.y
                 self.player2.Disparar(x,y)
-                disparo_2 = False
+                disparo_2 = 0
+
+            if mina_indicacion == 1:
+                x = self.MINAS.rect.left
+                y = self.MINAS.rect.top
+                self.MINAS.aparicion(x,y)
+        
+                
 
 
             if len(self.player.lista_disparo) > 0:
@@ -352,15 +358,16 @@ class Game:
 
     def send_data(self):
 
-        data = str(self.net.id) + ":" + str(self.player.rect.x) + "," + str(self.player.rect.y) + "," + str(segundos) + "," + str(minutos) + "," + str(disparo_2) + "," + str(mina)
+        data = str(self.net.id) + ":" + str(self.player.rect.x) + "," + str(self.player.rect.y) + "," + str(segundos) + "," + str(minutos) + "," + str(disparo_2) + "," + str(mina_indicacion) + "," + str(Num_x) + "," + str(Num_y)
         reply = self.net.send(data)
+        print (data)
         return reply
 
     @staticmethod
     def parse_data(data):
         try:
             d = data.split(":")[1].split(",")
-            return int(d[0]), int(d[1]), int(d[2]), int(d[3]), bool(d[4]), bool(d[5])
+            return int(d[0]), int(d[1]), int(d[2]), int(d[3]), int(d[4]), int(d[5]), int(d[6]), int(d[7])
         except:
             return 0,0
 

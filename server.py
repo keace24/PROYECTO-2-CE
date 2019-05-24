@@ -18,7 +18,7 @@ s.listen(2)
 print("Waiting for a connection")
 
 currentId = "0"
-pos = ["0:50,50,0,0,0,0,0,0", "1:100,100,0,0,0,0,0,0"]
+pos = ["0:50,50,0,0,0,0,0,0,0", "1:100,100,0,0,0,0,0,0,0"]
 mina = []
 def threaded_client(conn):
     global currentId, pos

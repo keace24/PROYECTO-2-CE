@@ -9,7 +9,8 @@ import time
 from tkinter import *
 from tkinter import messagebox
 
-global Num_x, Num_y, contador, mina_indicacion, dibujar_mina,Imagen_Disparo_Jugador, minutos, reply_1, tiempo_pausa, segundos, Jugador1, Jugador2, vida_player, vida_player2, disparo_2
+global Num_x, Num_y, contador, mina_indicacion, dibujar_mina,Imagen_Disparo_Jugador
+global minutos, reply_1, tiempo_pausa, segundos, Jugador1, Jugador2, vida_player, vida_player2, disparo_2, puntos_J1, puntos_J2
 Num_x = 0
 Num_y = 0
 contador = 0
@@ -23,6 +24,9 @@ tiempo_pausa = 0
 vida_player = 100
 vida_player2 = 100
 disparo_2 = 0
+puntos_J1 = 0
+puntos_J2 = 0
+
 
 ancho = 1366
 alto = 768
@@ -226,18 +230,42 @@ class Game:
                       #  pygame.display.update()
     
     def run(self):
-        global contador, minutos, segundos, Jugador1, Jugador2, vida_player, vida_player2, disparo_2, mina_indicacion, Num_x, Num_y
+        global contador, minutos, segundos, Jugador1, Jugador2, vida_player, vida_player2, disparo_2, mina_indicacion, Num_x, Num_y, puntos_J1, puntos_J2
         clock = pygame.time.Clock()
         run = True
-        #self.Esperando_Jugadores()
+        
+        # establece el tamaño de la ventana
+        cyan = (0, 255, 255, 100)
+
+        pygame.display.set_caption(u'Superficies transparentes')
+
+        cyan_surface = pygame.Surface((175, 175)).convert_alpha()
+
+        cyan_surface.fill(cyan)
+        
         while run:
+            # crea la superficie de color cyan de dimensiones width=240, height=240
+            
+            # establece el título de la ventana
+         
             
             self.screen.fill((255,255,255))
+            
+            
             clock.tick(60)
             self.tiempo = pygame.time.get_ticks()/1000
             
-            Texto_puntaje = pygame.font.Font (None, 50)
-            Texto_Pantalla = Texto_puntaje.render("Tiempo " + str(minutos) + " : " + str(int(segundos)), 0,(255,255,255))
+            Texto_Tiempo = pygame.font.Font (None, 50)
+            Texto_Pantalla = Texto_Tiempo.render("Tiempo " + str(minutos) + " : " + str(int(segundos)), 0,(255,255,255))
+
+            Puntajes_J1 = pygame.font.Font (None, 30)
+            Texto_J1 = Puntajes_J1.render('Jugador 1: ' + str(int(puntos_J1)) , 0,(255,255,255))
+
+            Puntajes_J2 = pygame.font.Font (None, 30)
+            Texto_J2 = Puntajes_J2.render('Jugador 2: ' + str(int(puntos_J2)) , 0,(255,255,255))
+
+            Titulo_puntaje = pygame.font.Font (None, 30)
+            Titulo = Titulo_puntaje.render(str('PUNTOS'), 0,(255,255,255))
 
             
 
@@ -290,7 +318,7 @@ class Game:
                     self.player.move(3)
 
             # Send Network Stuff
-            self.player2.rect.x, self.player2.rect.y, segundos, minutos, disparo_2, mina_indicacion, Num_x, Num_y = self.parse_data(self.send_data())
+            self.player2.rect.x, self.player2.rect.y, segundos, minutos, disparo_2, mina_indicacion, Num_x, Num_y, puntos_J2 = self.parse_data(self.send_data())
 
             # Update Canvas
             self.screen.blit(self.fondo, (0, 0))
@@ -317,9 +345,12 @@ class Game:
                         else:
                                 if x.rect.colliderect(self.player2.rect):
                                                 vida_player -= 5
-                                                print(vida_player)
+                                                puntos_J1 += 4
+                                                print(puntos_J1)
                                                 self.player.lista_disparo.remove(x)
             #if vida_player == 0:
+                            
+
 
 
             if disparo_2 == 1:
@@ -349,16 +380,21 @@ class Game:
             if len(self.MINAS.lista_mina) > 0:
                 for x in self.MINAS.lista_mina:
                                      x.Dibujar(self.screen)
-                                     
-            self.screen.blit(Texto_Pantalla,(20,20))     
+                
+            
+            # dibuja la superficie de color cyan en la posición x=140, y=140
+            self.screen.blit(cyan_surface, (1195, 0))
+            self.screen.blit(Texto_J1,(1220,40))
+            self.screen.blit(Texto_J2,(1220,95))
+            cyan_surface.blit(Titulo,(45,0))  
+            self.screen.blit(Texto_Pantalla,(20,20))
             pygame.display.update()
             pygame.display.flip()           
 
         pygame.quit()
-
     def send_data(self):
 
-        data = str(self.net.id) + ":" + str(self.player.rect.x) + "," + str(self.player.rect.y) + "," + str(segundos) + "," + str(minutos) + "," + str(disparo_2) + "," + str(mina_indicacion) + "," + str(Num_x) + "," + str(Num_y)
+        data = str(self.net.id) + ":" + str(self.player.rect.x) + "," + str(self.player.rect.y) + "," + str(segundos) + "," + str(minutos) + "," + str(disparo_2) + "," + str(mina_indicacion) + "," + str(Num_x) + "," + str(Num_y) + "," + str(puntos_J1)
         reply = self.net.send(data)
         print (data)
         return reply
@@ -367,7 +403,7 @@ class Game:
     def parse_data(data):
         try:
             d = data.split(":")[1].split(",")
-            return int(d[0]), int(d[1]), int(d[2]), int(d[3]), int(d[4]), int(d[5]), int(d[6]), int(d[7])
+            return int(d[0]), int(d[1]), int(d[2]), int(d[3]), int(d[4]), int(d[5]), int(d[6]), int(d[7]), int(d[8])
         except:
             return 0,0
 

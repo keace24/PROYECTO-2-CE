@@ -35,7 +35,7 @@ pygame.init()
 
 Ventana = tkinter.Tk()
 pygame.init()
-Ventana.title ("Space Invaders") 
+Ventana.title ("Pydakardeath") 
 Ventana.wm_state('zoomed') 
 Ventana.config(bg='white')
 img = PhotoImage(file='Fondo.png')

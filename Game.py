@@ -10,7 +10,7 @@ from tkinter import *
 from tkinter import messagebox
 
 global Num_x, Num_y, contador, mina_indicacion, dibujar_mina,Imagen_Disparo_Jugador
-global minutos, reply_1, tiempo_pausa, segundos, Jugador1, Jugador2, vida_player, vida_player2, disparo_2, puntos_J1, puntos_J2
+global minutos, reply_1, tiempo_pausa, segundos, Jugador1, Jugador2, vida_player, vida_player2, disparo_2, puntos_J1, puntos_J2, imagenC, imagenC2, direccion
 Num_x = 0
 Num_y = 0
 contador = 0
@@ -26,6 +26,9 @@ vida_player2 = 100
 disparo_2 = 0
 puntos_J1 = 0
 puntos_J2 = 0
+imagenC = "carro1.png"
+imagenC2 = "carro1.png"
+direccion = 0
 
 
 ancho = 1366
@@ -56,7 +59,7 @@ class Network():
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.host = "localhost" # For this to work on your machine this must be equal to the ipv4 address of the machine running the server
-                                    # You can find this address by typing ipconfig in CMD and copying the ipv4 address. Again this must be the servers
+        #"192.168.0.103"                            # You can find this address by typing ipconfig in CMD and copying the ipv4 address. Again this must be the servers
                                     # ipv4 address. This feild will be the same for all your clients.
         self.port = 5555            
         self.addr = (self.host, self.port)
@@ -118,25 +121,34 @@ class mina(pygame.sprite.Sprite):
                 superficie.blit (self.imagen_mina, self.rect)
 
 class Proyectil(pygame.sprite.Sprite):
-        def __init__(self,posx,posy, imagen, personaje):
+        def __init__(self,posx,posy, imagen):
+                global direccion
                 pygame.sprite.Sprite.__init__(self)
                 self.imagen_proyectil = pygame.image.load (imagen)
                 #self.imagen_proyectil = pygame.transform.scale(self.imagen_proyectil,(50,45))
                 self.rect = self.imagen_proyectil.get_rect()
-                self.v_disparo = 2
+                self.v_disparo = 6
                 self.rect.top = posy
                 self.rect.left = posx
-                self.disparo_personaje = personaje
+                
 
                 
                 
         # Define el movimiento de los proyectiles
         
         def Trayecto(self):
-                if self.disparo_personaje == False:
-                        self.rect.top = self.rect.top + self.v_disparo
-                else:
+                if direccion == 0:
                         self.rect.top = self.rect.top - self.v_disparo
+        
+                elif direccion == 1:
+                        self.rect.top = self.rect.top + self.v_disparo
+                        
+                elif direccion == 3:
+                        self.rect.left = self.rect.left + self.v_disparo
+
+                elif direccion == 4:
+                        self.rect.left = self.rect.left - self.v_disparo
+                        
                  
                         
         #Se crea una superficie para dibujar los proyectiles
@@ -147,20 +159,20 @@ class Proyectil(pygame.sprite.Sprite):
 class Player(pygame.sprite.Sprite):
     width = height = 50
 
-    def __init__(self, startx, starty):
+    def __init__(self, startx, starty, imagen):
         pygame.sprite.Sprite.__init__(self)
-        self.imagen_Jugador = pygame.image.load ("carro1.png")
+        self.imagen_Jugador = pygame.image.load (imagen)
         self.imagen_Jugador = pygame.transform.scale(self.imagen_Jugador,(45,45))
         self.rect = self.imagen_Jugador.get_rect()
         self.rect.x = startx
         self.rect.y = starty
-        self.velocity = 2
+        self.velocity = 8
         self.lista_disparo = []
         
     def Disparar (self,x,y):
         
                 global Imagen_Disparo_Jugador
-                disparo = Proyectil(x,y, Imagen_Disparo_Jugador,True)
+                disparo = Proyectil(x,y, Imagen_Disparo_Jugador)
                 self.lista_disparo.append(disparo)
     
     def Dibujar(self, superficie):
@@ -184,7 +196,7 @@ class Player(pygame.sprite.Sprite):
 class Game:
     ancho = 1366
     alto = 768
-    global Num_x, Num_y, contador, dibujar_mina, minutos, segundos
+    global Num_x, Num_y, contador, dibujar_mina, minutos, segundos, imagenC, imagenC2
     def __init__(self, w, h):
         def Crono():
             global minutos, segundos
@@ -206,8 +218,8 @@ class Game:
         self.net = Network()
         self.width = w
         self.height = h
-        self.player = Player(590, 700)
-        self.player2 = Player(690,700)
+        self.player = Player(590, 700, imagenC)
+        self.player2 = Player(690,700, imagenC2)
         self.MINAS = mina()
          
                                 
@@ -230,7 +242,7 @@ class Game:
                       #  pygame.display.update()
     
     def run(self):
-        global contador, minutos, segundos, Jugador1, Jugador2, vida_player, vida_player2, disparo_2, mina_indicacion, Num_x, Num_y, puntos_J1, puntos_J2
+        global contador, minutos, segundos, Jugador1, Jugador2, vida_player, vida_player2, disparo_2, mina_indicacion, Num_x, Num_y, puntos_J1, puntos_J2, imagenC, imagenC2, direccion, Imagen_Disparo_Jugador
         clock = pygame.time.Clock()
         run = True
         
@@ -247,7 +259,7 @@ class Game:
             # crea la superficie de color cyan de dimensiones width=240, height=240
             
             # establece el título de la ventana
-         
+            self.player
             
             self.screen.fill((255,255,255))
             
@@ -299,26 +311,44 @@ class Game:
 
             keys = pygame.key.get_pressed()
             
-            
 
             if keys[pygame.K_RIGHT]:
                 if self.player.rect.x <= 1320 - self.player.velocity:
-                    self.player.move(0)
+                    self.player.rect.x += self.player.velocity
+                    direccion = 3
+                    Imagen_Disparo_Jugador = "proyectil_v3.png"
+                    imagenC = "carro2.png"
+                    self.player = Player(self.player.rect.x, self.player.rect.y, imagenC)
+            self.player2 = Player(self.player2.rect.x, self.player2.rect.y, imagenC2)
 
             if keys[pygame.K_LEFT]:
                 if self.player.rect.x >= self.player.velocity:
-                    self.player.move(1)
+                    self.player.rect.x -= self.player.velocity
+                    direccion = 4
+                    Imagen_Disparo_Jugador = "proyectil_v3.png"
+                    imagenC = "carro3.png"
+                    self.player = Player(self.player.rect.x, self.player.rect.y, imagenC)
+           
 
             if keys[pygame.K_UP]:
                 if self.player.rect.y >= self.player.velocity:
-                    self.player.move(2)
+                    self.player.rect.y -= self.player.velocity
+                    direccion = 0
+                    Imagen_Disparo_Jugador = "proyectil_v2.png"
+                    imagenC = "carro1.png"
+                    self.player = Player(self.player.rect.x, self.player.rect.y, imagenC)
+         
 
             if keys[pygame.K_DOWN]:
                 if self.player.rect.y <= 723 - self.player.velocity:
-                    self.player.move(3)
+                    self.player.rect.y += self.player.velocity
+                    direccion = 1
+                    Imagen_Disparo_Jugador = "proyectil_v2.png"
+                    imagenC = "carro4.png"
+                    self.player = Player(self.player.rect.x, self.player.rect.y, imagenC)
 
             # Send Network Stuff
-            self.player2.rect.x, self.player2.rect.y, segundos, minutos, disparo_2, mina_indicacion, Num_x, Num_y, puntos_J2 = self.parse_data(self.send_data())
+            self.player2.rect.x, self.player2.rect.y, segundos, minutos, disparo_2, mina_indicacion, Num_x, Num_y, puntos_J2, imagenC2 = self.parse_data(self.send_data())
 
             # Update Canvas
             self.screen.blit(self.fondo, (0, 0))
@@ -346,7 +376,6 @@ class Game:
                                 if x.rect.colliderect(self.player2.rect):
                                                 vida_player -= 5
                                                 puntos_J1 += 4
-                                                print(puntos_J1)
                                                 self.player.lista_disparo.remove(x)
             #if vida_player == 0:
                             
@@ -394,16 +423,16 @@ class Game:
         pygame.quit()
     def send_data(self):
 
-        data = str(self.net.id) + ":" + str(self.player.rect.x) + "," + str(self.player.rect.y) + "," + str(segundos) + "," + str(minutos) + "," + str(disparo_2) + "," + str(mina_indicacion) + "," + str(Num_x) + "," + str(Num_y) + "," + str(puntos_J1)
+        data = str(self.net.id) + ":" + str(self.player.rect.x) + "," + str(self.player.rect.y) + "," + str(segundos) + "," + str(minutos) + "," + str(disparo_2) + "," + str(mina_indicacion) + "," + str(Num_x) + "," + str(Num_y) + "," + str(puntos_J1) + "," + str(imagenC)
         reply = self.net.send(data)
-        print (data)
+        #print (data)
         return reply
 
     @staticmethod
     def parse_data(data):
         try:
             d = data.split(":")[1].split(",")
-            return int(d[0]), int(d[1]), int(d[2]), int(d[3]), int(d[4]), int(d[5]), int(d[6]), int(d[7]), int(d[8])
+            return int(d[0]), int(d[1]), int(d[2]), int(d[3]), int(d[4]), int(d[5]), int(d[6]), int(d[7]), int(d[8]), str(d[9])
         except:
             return 0,0
 

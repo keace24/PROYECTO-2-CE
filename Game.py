@@ -11,8 +11,9 @@ from tkinter import messagebox
 
 #Se crean las variables globales las cuales en su mayoria seran enviadas al servidor para que llegue al otro cliente
 
-global Num_x, Num_y, contador, mina_indicacion, dibujar_mina,Imagen_Disparo_Jugador, pausado_J2
+global Num_x, Num_y, contador, mina_indicacion, dibujar_mina,Imagen_Disparo_Jugador, pausado_J2, name, name_J2, carroe_indicacion, dibujar_carroenemigo, muerto, meta
 global minutos, reply_1, tiempo_pausa, segundos, Jugador1, Jugador2, vida_player, vida_player2, disparo_2, puntos_J1, puntos_J2, imagenC, imagenC2, direccion, pausado
+global dibujar_meta, meta_tam, disparo, direccion2
 Num_x = 0
 Num_y = 0
 contador = 0
@@ -33,6 +34,16 @@ imagenC2 = "carro1.png"
 direccion = 0
 pausado = False
 pausado_J2 = False
+name = ''
+name_J2 = ''
+carroe_indicacion = 0
+dibujar_carroenemigo = 0
+muerto = ''
+meta = pygame.image.load("meta.png")
+meta_tam = pygame.transform.scale(meta,(200,150))
+dibujar_meta = False
+disparo = 0
+direccion2 = 0
 
 #Dimensiones de la ventana de juego
 
@@ -98,7 +109,8 @@ class Network():
         reply_1 = pickle.loads(reply)        
         if isinstance(reply_1, str):
             return reply_1
-        
+
+   
 # Se crea el sprite de las minas que se dibujaran en el juego
 class mina(pygame.sprite.Sprite):
         def __init__(self):
@@ -168,6 +180,19 @@ class Proyectil(pygame.sprite.Sprite):
 
                 elif direccion == 4:
                         self.rect.left = self.rect.left - self.v_disparo
+
+        def Trayecto2(self):
+                if direccion2 == 0:
+                        self.rect.top = self.rect.top - self.v_disparo
+        
+                elif direccion2 == 1:
+                        self.rect.top = self.rect.top + self.v_disparo
+                        
+                elif direccion2 == 3:
+                        self.rect.left = self.rect.left + self.v_disparo
+
+                elif direccion2 == 4:
+                        self.rect.left = self.rect.left - self.v_disparo
                         
                  
                         
@@ -175,6 +200,40 @@ class Proyectil(pygame.sprite.Sprite):
 
         def Dibujar (self, superficie):
                 superficie.blit (self.imagen_proyectil, self.rect)
+
+def iniciar():
+
+    if __name__ == "__main__":
+            g = Game(ancho,alto)
+            g.run()
+
+class Nombre_Jugador():
+        def __init__(self):
+        
+                global name
+                pygame.font.init()
+                self.Canvas_Jugador = Canvas (Ventana, bg = "white", width = 250, height = 300)
+                self.Canvas_Jugador.pack()
+
+                self.dato=tkinter.StringVar()
+                self.Nombre = Entry(self.Canvas_Jugador, bd = 5, justify = LEFT, textvariable=self.dato)
+                self.Nombre.place(x=120,y=20)
+                
+                self.Label_Jugador = Label (self.Canvas_Jugador,text = "Jugador:",fg = "black",bg = "white")
+                self.Label_Jugador.place (x=20,y=20)
+                
+                self.B_Guardar = tkinter.Button(self.Canvas_Jugador, text="Guardar",fg="white",width=9,height=2,bg="GREEN",command=self.Lista_J, cursor='hand2')
+                self.B_Guardar.place(x=120,y=50)
+                self.B_Jugar2 = tkinter.Button(self.Canvas_Jugador, text="Jugar",fg="white",width=9,height=2,bg="GREEN",command=iniciar, cursor='hand2')
+                self.B_Jugar2.place(x=120,y=100)
+
+        def Lista_J(self):
+                global name
+                archivo = open ("Jugadores.csv","a")
+                name = self.dato.get()
+                archivo.write(name)
+                archivo.write("\n")
+                archivo.close
 
 #Se crea la clase donde se maneja las ubicaciones e imagenes de los jugadores
                 
@@ -191,6 +250,7 @@ class Player(pygame.sprite.Sprite):
         self.velocity = 8
         self.lista_disparo = []
 
+
 # La funcion disparar agregara un disparo a la lista disparo para que se dibuje en pantalla
         
     def Disparar (self,x,y):
@@ -206,13 +266,42 @@ class Player(pygame.sprite.Sprite):
 
 
 # La clase principal del juego
+def Game_Over():
+        
+        pygame.init()
+        G_O = pygame.display.set_mode((ancho, alto),pygame.FULLSCREEN)
+        pygame.display.set_caption ("Pydakardeath")
+
+        Texto_muerte = pygame.font.Font (None, 40)
+        Texto_m = Texto_muerte.render("El jugador " + muerto + " a muerto", 0,(255,255,255))
+
+        Texto_indicacion = pygame.font.Font (None, 30)
+        Texto_in = Texto_indicacion.render("Presione [s] para ir a la ventana principal ", 0,(255,255,255))
+        
+
+        #Se le asigna un ciclo whie para que la ventana se cierre al presionar la tecla S
+
+        while True:
+                for event in pygame.event.get():
+                        if event.type == pygame.KEYDOWN:
+                                if event.key == pygame.K_s:
+                                        Ventana.deiconify()
+                                        pygame.display.quit()
+                                        pygame.quit()
+                                        sys.exit()
+                                                
+                G_O.blit(Texto_in,(500,700))
+                G_O.blit(Texto_m,(200,400))
+                pygame.display.update()
 
 class Game:
     ancho = 1366
     alto = 768
     #se llaman todas las las variables globales necesarias
     global Num_x, Num_y, contador, dibujar_mina, minutos, segundos, imagenC, imagenC2
-    global tiempo_pausa, segundos, Jugador2
+    global tiempo_pausa, segundos, Jugador2, muerto
+
+    
     def __init__(self, w, h):
             # Se crea una funcion de cronometro donde se aumentara la variable segundos y la variable minutos
         def Crono():
@@ -228,11 +317,12 @@ class Game:
         # Este hilo llamara continuamente a la funcion cronometro para que se ejecute
         hilo = threading.Thread(target = Crono, args = ())
         #Se inicia el hilo
+        
         hilo.start()
         pygame.init()
         self.screen = pygame.display.set_mode((ancho, alto),pygame.FULLSCREEN)
         pygame.display.set_caption ("pyDakarDeath")
-        self.fondo = pygame.image.load("mapa.png").convert()
+        self.fondo = pygame.image.load("textura.jpg").convert()
         self.fondo = pygame.transform.scale(self.fondo,(ancho,alto))
         self.net = Network()
         self.width = w
@@ -249,7 +339,7 @@ class Game:
     
     def run(self):
         global contador, minutos, segundos, Jugador1, Jugador2, vida_player, vida_player2, disparo_2, mina_indicacion, Num_x, Num_y, puntos_J1, puntos_J2, imagenC, imagenC2, direccion, Imagen_Disparo_Jugador, pausado
-        global pausado_J2
+        global pausado_J2, name, name_J2, muerto, meta, dibujar_meta, meta_tam, disparo, direccion2
         clock = pygame.time.Clock()
         run = True
         
@@ -283,10 +373,10 @@ class Game:
             # Se dibuja en pantalla los puntos de los jugadores
 
             Puntajes_J1 = pygame.font.Font (None, 30)
-            Texto_J1 = Puntajes_J1.render('Jugador 1: ' + str(int(puntos_J1)) , 0,(255,255,255))
+            Texto_J1 = Puntajes_J1.render(name + ": " + str(int(puntos_J1)) , 0,(255,255,255))
 
             Puntajes_J2 = pygame.font.Font (None, 30)
-            Texto_J2 = Puntajes_J2.render('Jugador 2: ' + str(int(puntos_J2)) , 0,(255,255,255))
+            Texto_J2 = Puntajes_J2.render(name_J2 + ": " + str(int(puntos_J2)) , 0,(255,255,255))
 
             # Se dibuja el titulo puntos
 
@@ -306,10 +396,11 @@ class Game:
                                                 # si el cliente presiona espacio se creara un disparo
                                         if event.key == pygame.K_SPACE:
                                             #Se crean variables x,y para tomar la posicio actual de la nave, para asignarselo a la trayectoria del disparo
+                                            disparo = 1
                                             x = self.player.rect.x + 15
                                             y = self.player.rect.y
                                             self.player.Disparar(x,y)
-                                            disparo_2 = 1
+                                            
                                             #Se define un sonido al disparo de la nave
                                             #Disparo_son = pygame.mixer.Sound("disparo de nave.wav")
                                             #Disparo_son.play()
@@ -318,15 +409,7 @@ class Game:
                                         if event.key == pygame.K_p:
                                                 pausado = True
                                                 
-                                        """
-                                                Menu = tkinter.Tk()
-                                                Menu.geometry("300x300+0+0")
-                                                Menu.title ("Menú")  
-                                                Menu.config(bg='white')
-                                                Menu.wm_attributes("-topmost", 1)
-                                                Menu.pack()
-                                                
-                                                """
+                                        
                                         
             # Este evento capta si el cliente deja presionado una tecla    
                 
@@ -377,7 +460,7 @@ class Game:
             if keys[pygame.K_UP]:
                 if self.player.rect.y >= self.player.velocity:
                     self.player.rect.y -= self.player.velocity
-                    direccion = 0
+                    direccion = 0 
                     Imagen_Disparo_Jugador = "proyectil_v2.png"
                     imagenC = "carro1.png"
                     self.player = Player(self.player.rect.x, self.player.rect.y, imagenC)
@@ -393,7 +476,7 @@ class Game:
 
             # Send Network Stuff
             #Aqui se le asignan las variables al jugador 2 del otro cliente para que sean enviadas al servidor
-            self.player2.rect.x, self.player2.rect.y, segundos, minutos, disparo_2, mina_indicacion, Num_x, Num_y, puntos_J2, imagenC2, pausado_J2 = self.parse_data(self.send_data())
+            self.player2.rect.x, self.player2.rect.y, segundos, minutos, disparo_2, mina_indicacion, Num_x, Num_y, puntos_J2, imagenC2, pausado_J2, vida_player2, name_J2, direccion2 = self.parse_data(self.send_data())
 
             # Update Canvas
             self.screen.blit(self.fondo, (0, 0))
@@ -420,37 +503,70 @@ class Game:
                         if x.rect.top < -20:
                                 self.player.lista_disparo.remove(x)
                         # Capta si el disparo coliciona con el otro jugados, y si coliciona se sumaran 4 puntos al jugador
-                        else:
-                                if x.rect.colliderect(self.player2.rect):
-                                                vida_player -= 5
-                                                puntos_J1 += 4
-                                                self.player.lista_disparo.remove(x)
-            
+                        elif x.rect.colliderect(self.player2.rect):
+                                        vida_player -= 5
+                                        puntos_J1 += 4
+                                        self.player.lista_disparo.remove(x)
+
+                
+                                                
+            if minutos == 2:
+                    dibujar_meta = True
+
+            if dibujar_meta == True:
+                    
+                        self.screen.blit(meta_tam, (600, 3))
+
+        # Si la vida del jugador 2 es 0 muestra la ventana indicando cual jugador murio y restablece todos los datos a 0 para reiniciar el juego              
                             
+            if vida_player2 == 0:
+                    vida_player = 100
+                    vida_player2 = 100
+                    puntos_J1 = 0
+                    puntos_J2 = 0
+                    minutos = 0
+                    segundos = 0
+                    muerto = name_J2
+                    pygame.display.quit()
+                    pygame.quit()
+                    Game_Over()
+        # Si la vida del jugador es 0 muestra la ventana indicando cual jugador murio y restablece todos los datos a 0 para reiniciar el juego
+            elif vida_player == 0:
+                    puntos_J1 = 0
+                    vida_player = 100
+                    vida_player2 = 100
+                    puntos_J2 = 0
+                    minutos = 0
+                    segundos = 0
+                    muerto = name
+                    pygame.display.quit()
+                    pygame.quit()
+                    Game_Over()
 
-
-
+            # Indicacion para mostrar los disparos de un cliente en el otro
             if disparo_2 == 1:
                 x = self.player2.rect.x + 15
                 y = self.player2.rect.y
                 self.player2.Disparar(x,y)
-                disparo_2 = 0
+                disparo = 0
+
+         # Indica cuando se deben dibujar las minas en ambos clientes
 
             if mina_indicacion == 1:
                 x = self.MINAS.rect.left
                 y = self.MINAS.rect.top
                 self.MINAS.aparicion(x,y)
+                mina_indicacion = 0
         
-                
+        
 
-
-            if len(self.player.lista_disparo) > 0:
+                                
+            if len(self.player2.lista_disparo) > 0:
                     for x in self.player2.lista_disparo:
                         x.Dibujar(self.screen)
-                        x.Trayecto()
+                        x.Trayecto2()
                         if x.rect.top < -20:
                                 self.player2.lista_disparo.remove(x)
-                
                     
                                 
            # if len(self.MINAS.lista_mina) > 0:
@@ -471,7 +587,7 @@ class Game:
         pygame.quit()
     def send_data(self):
 
-        data = str(self.net.id) + ":" + str(self.player.rect.x) + "," + str(self.player.rect.y) + "," + str(segundos) + "," + str(minutos) + "," + str(disparo_2) + "," + str(mina_indicacion) + "," + str(Num_x) + "," + str(Num_y) + "," + str(puntos_J1) + "," + str(imagenC) + "," + str(pausado)
+        data = str(self.net.id) + ":" + str(self.player.rect.x) + "," + str(self.player.rect.y) + "," + str(segundos) + "," + str(minutos) + "," + str(disparo) + "," + str(mina_indicacion) + "," + str(Num_x) + "," + str(Num_y) + "," + str(puntos_J1) + "," + str(imagenC) + "," + str(pausado) + "," + str(vida_player) + "," + str(name) + "," + str(direccion)
         reply = self.net.send(data)
         #print (data)
         return reply
@@ -480,19 +596,15 @@ class Game:
     def parse_data(data):
         try:
             d = data.split(":")[1].split(",")
-            return int(d[0]), int(d[1]), int(d[2]), int(d[3]), int(d[4]), int(d[5]), int(d[6]), int(d[7]), int(d[8]), str(d[9]), bool(d[10])
+            return int(d[0]), int(d[1]), int(d[2]), int(d[3]), int(d[4]), int(d[5]), int(d[6]), int(d[7]), int(d[8]), str(d[9]), bool(d[10]), int(d[11]), str(d[12]), int(d[13])
         except:
             return 0,0
 
-def iniciar():
 
-    if __name__ == "__main__":
-            g = Game(ancho,alto)
-            g.run()
 
 B_Salir = tkinter.Button(Ventana, text="Salir",fg="white",width=10,height=3,bg="GREEN",command=Salir, cursor='pirate')
 B_Salir.place(x=642,y=600)
-B_Jugar = tkinter.Button(Ventana, text="Jugar",fg="white",width=10,height=3,bg="GREEN",command=iniciar, cursor='hand2')
+B_Jugar = tkinter.Button(Ventana, text="Jugar",fg="white",width=10,height=3,bg="GREEN",command=Nombre_Jugador, cursor='hand2')
 B_Jugar.place(x=642,y=540)
 
 

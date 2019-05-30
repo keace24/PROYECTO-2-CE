@@ -13,7 +13,9 @@ from tkinter import messagebox
 
 global Num_x, Num_y, contador, mina_indicacion, dibujar_mina,Imagen_Disparo_Jugador, pausado_J2, name, name_J2, carroe_indicacion, dibujar_carroenemigo, muerto, meta
 global minutos, reply_1, tiempo_pausa, segundos, Jugador1, Jugador2, vida_player, vida_player2, disparo_2, puntos_J1, puntos_J2, imagenC, imagenC2, direccion, pausado
-global dibujar_meta, meta_tam, disparo, direccion2
+global dibujar_meta, meta_tam, disparo, direccion2, lista_disparo, lista_disparo2, mina_x, mina_y, mina_indicacion2
+global img_1, img_2, img_3, img_4, img_5, move_1, move_2, move_3, move_4, move_5, vida4, Aparicion
+
 Num_x = 0
 Num_y = 0
 contador = 0
@@ -39,11 +41,28 @@ name_J2 = ''
 carroe_indicacion = 0
 dibujar_carroenemigo = 0
 muerto = ''
-meta = pygame.image.load("meta.png")
-meta_tam = pygame.transform.scale(meta,(200,150))
+#meta = pygame.image.load("meta.png")
+#meta_tam = pygame.transform.scale(meta,(200,150))
 dibujar_meta = False
 disparo = 0
 direccion2 = 0
+lista_disparo = []
+lista_disparo2 = []
+mina_x = 0
+mina_y = 0
+mina_indicacion2 = 0
+img_1= "carroe2.png"
+img_2= "carroe2.png"
+img_3= "carroe3.png"
+img_4= "carroe3.png"
+img_5= "carroe4.png"
+move_1 = 0
+move_2 = 0
+move_3 = 0
+move_4 = 0
+move_5 = 0
+vida4 = 100
+Aparicion = 0
 
 #Dimensiones de la ventana de juego
 
@@ -110,6 +129,36 @@ class Network():
         if isinstance(reply_1, str):
             return reply_1
 
+class meta(pygame.sprite.Sprite):
+        def __init__(self, startx, starty):
+                pygame.sprite.Sprite.__init__(self)
+                self.imagen_meta = pygame.image.load ("meta.png")
+                self.imagen_meta = pygame.transform.scale(self.imagen_meta,(200,150))
+                self.rect = self.imagen_meta.get_rect()
+                self.rect.top = startx
+                self.rect.left = starty
+
+        def Dibujar(self, superficie):
+                superficie.blit (self.imagen_meta, self.rect)
+        
+class Enemigos(pygame.sprite.Sprite):
+    global move_1
+    width = height = 50
+    def __init__(self, startx, starty, imagen):
+        pygame.sprite.Sprite.__init__(self)
+        self.imagen_enemigo = pygame.image.load (imagen)
+        self.imagen_enemigo = pygame.transform.scale(self.imagen_enemigo,(45,45))
+        self.rect = self.imagen_enemigo.get_rect()
+        self.rect.top = startx
+        self.rect.left = starty
+        self.velocity = 9
+    
+    
+                
+        
+    
+    def Dibujar(self, superficie):
+        superficie.blit (self.imagen_enemigo, self.rect)
    
 # Se crea el sprite de las minas que se dibujaran en el juego
 class mina(pygame.sprite.Sprite):
@@ -118,7 +167,7 @@ class mina(pygame.sprite.Sprite):
                 self.imagen_mina = pygame.image.load ("mina.png")
                 self.imagen_mina = pygame.transform.scale(self.imagen_mina,(40,40))
                 self.rect = self.imagen_mina.get_rect()
-                global Num_x, Num_y, contador, dibujar_mina
+                global Num_x, Num_y, contador, dibujar_mina, Aparicion
                 self.rect.top = Num_x
                 self.rect.left = Num_y
                 self.aparicion_mina = 5
@@ -143,6 +192,7 @@ class mina(pygame.sprite.Sprite):
                 
         #Agrega las minas creadas en una lista        
         def aparicion(self,x,y):
+                
                 Aparicion = mina()
                 self.lista_mina.append(Aparicion)
         
@@ -159,7 +209,7 @@ class Proyectil(pygame.sprite.Sprite):
                 self.imagen_proyectil = pygame.image.load (imagen)
                 #self.imagen_proyectil = pygame.transform.scale(self.imagen_proyectil,(50,45))
                 self.rect = self.imagen_proyectil.get_rect()
-                self.v_disparo = 6
+                self.v_disparo = 35
                 self.rect.top = posy
                 self.rect.left = posx
                 
@@ -168,30 +218,30 @@ class Proyectil(pygame.sprite.Sprite):
                 
         # Define el movimiento de los proyectiles
         
-        def Trayecto(self):
-                if direccion == 0:
+        def Trayecto(self, direc):
+                if direc == 0:
                         self.rect.top = self.rect.top - self.v_disparo
         
-                elif direccion == 1:
+                elif direc == 1:
                         self.rect.top = self.rect.top + self.v_disparo
                         
-                elif direccion == 3:
+                elif direc == 3:
                         self.rect.left = self.rect.left + self.v_disparo
 
-                elif direccion == 4:
+                elif direc == 4:
                         self.rect.left = self.rect.left - self.v_disparo
 
-        def Trayecto2(self):
-                if direccion2 == 0:
+        def Trayecto2(self, di):
+                if di == 0:
                         self.rect.top = self.rect.top - self.v_disparo
         
-                elif direccion2 == 1:
+                elif di == 1:
                         self.rect.top = self.rect.top + self.v_disparo
                         
-                elif direccion2 == 3:
+                elif di == 3:
                         self.rect.left = self.rect.left + self.v_disparo
 
-                elif direccion2 == 4:
+                elif di == 4:
                         self.rect.left = self.rect.left - self.v_disparo
                         
                  
@@ -202,7 +252,6 @@ class Proyectil(pygame.sprite.Sprite):
                 superficie.blit (self.imagen_proyectil, self.rect)
 
 def iniciar():
-
     if __name__ == "__main__":
             g = Game(ancho,alto)
             g.run()
@@ -239,7 +288,7 @@ class Nombre_Jugador():
                 
 class Player(pygame.sprite.Sprite):
     width = height = 50
-
+    global lista_disparo, lista_disparo2
     def __init__(self, startx, starty, imagen):
         pygame.sprite.Sprite.__init__(self)
         self.imagen_Jugador = pygame.image.load (imagen)
@@ -247,8 +296,8 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.imagen_Jugador.get_rect()
         self.rect.x = startx
         self.rect.y = starty
-        self.velocity = 8
-        self.lista_disparo = []
+        self.velocity = 18
+        
 
 
 # La funcion disparar agregara un disparo a la lista disparo para que se dibuje en pantalla
@@ -257,12 +306,44 @@ class Player(pygame.sprite.Sprite):
         
                 global Imagen_Disparo_Jugador
                 disparo = Proyectil(x,y, Imagen_Disparo_Jugador)
-                self.lista_disparo.append(disparo)
+                lista_disparo.append(disparo)
+
+    def Disparar2 (self,x,y):
+        
+                global Imagen_Disparo_Jugador
+                disparo = Proyectil(x,y, Imagen_Disparo_Jugador)
+                lista_disparo2.append(disparo)
     
     def Dibujar(self, superficie):
         superficie.blit (self.imagen_Jugador, self.rect)
 
-    
+def win():
+        
+        pygame.init()
+        G_O = pygame.display.set_mode((ancho, alto),pygame.FULLSCREEN)
+        pygame.display.set_caption ("Pydakardeath")
+
+        Texto_muerte = pygame.font.Font (None, 40)
+        Texto_m = Texto_muerte.render("El jugador " + muerto + " a ganado", 0,(255,255,255))
+
+        Texto_indicacion = pygame.font.Font (None, 30)
+        Texto_in = Texto_indicacion.render("Presione [s] para ir a la ventana principal ", 0,(255,255,255))
+        
+
+        #Se le asigna un ciclo whie para que la ventana se cierre al presionar la tecla S
+
+        while True:
+                for event in pygame.event.get():
+                        if event.type == pygame.KEYDOWN:
+                                if event.key == pygame.K_s:
+                                        Ventana.deiconify()
+                                        pygame.display.quit()
+                                        pygame.quit()
+                                        sys.exit()
+                                                
+                G_O.blit(Texto_in,(500,700))
+                G_O.blit(Texto_m,(200,400))
+                pygame.display.update()
 
 
 # La clase principal del juego
@@ -299,7 +380,7 @@ class Game:
     alto = 768
     #se llaman todas las las variables globales necesarias
     global Num_x, Num_y, contador, dibujar_mina, minutos, segundos, imagenC, imagenC2
-    global tiempo_pausa, segundos, Jugador2, muerto
+    global tiempo_pausa, segundos, Jugador2, muerto, lista_disparo, img_1, img_2, img_3, img_4, img_5
 
     
     def __init__(self, w, h):
@@ -330,16 +411,27 @@ class Game:
         #Se asignar dos variables que serán los jugadores
         self.player = Player(590, 700, imagenC)
         self.player2 = Player(690,700, imagenC2)
+        self.META = meta(2, 600)
+
+
+        self.enemigo1 = Enemigos(200, 4, img_1)
+        self.enemigo2 = Enemigos(600,4, img_2)
+        self.enemigo3 = Enemigos(100,1300, img_3)
+        self.enemigo4 = Enemigos(500,1300, img_4)
+        self.enemigo5 = Enemigos(3,600, img_5)
+        
+        
         self.MINAS = mina()
          
                                 
-                                       
+                                      
         
 # Esta funcion correra infinitamente al juego             
     
     def run(self):
         global contador, minutos, segundos, Jugador1, Jugador2, vida_player, vida_player2, disparo_2, mina_indicacion, Num_x, Num_y, puntos_J1, puntos_J2, imagenC, imagenC2, direccion, Imagen_Disparo_Jugador, pausado
-        global pausado_J2, name, name_J2, muerto, meta, dibujar_meta, meta_tam, disparo, direccion2
+        global pausado_J2, name, name_J2, muerto, meta, dibujar_meta, meta_tam, disparo, direccion2, lista_disparo, lista_disparo2, mina_x, mina_y, mina_indicacion2
+        global img_1, img_2, img_3, img_4, img_5, move_1, move_2, move_3, move_4, move_5, vida4, Aparicion
         clock = pygame.time.Clock()
         run = True
         
@@ -352,7 +444,7 @@ class Game:
         cyan_surface = pygame.Surface((175, 175)).convert_alpha()
 
         cyan_surface.fill(cyan)
-        
+#_________________________________________________________________________________________________________________________________________________________________#        
         while run:
             # crea la superficie de color cyan de dimensiones width=240, height=240
             
@@ -360,6 +452,7 @@ class Game:
             self.player
             
             self.screen.fill((255,255,255))
+
             
             
             clock.tick(60)
@@ -383,7 +476,117 @@ class Game:
             Titulo_puntaje = pygame.font.Font (None, 30)
             Titulo = Titulo_puntaje.render(str('PUNTOS'), 0,(255,255,255))
 
+#_________________________________________________________________________________________________________________________________________________________________#
             
+            if move_1 == 0:
+                        if self.enemigo1.rect.left <= 1299:
+                                self.enemigo1.rect.left = self.enemigo1.rect.left + self.enemigo1.velocity
+                        
+                                
+                                if self.enemigo1.rect.left > 1299:
+                                        img_1 = "carroe3.png"
+                                        self.enemigo1.imagen_enemigo = pygame.image.load (img_1)
+                                        self.enemigo1.imagen_enemigo = pygame.transform.scale(self.enemigo1.imagen_enemigo,(45,45))
+                                        move_1 = 1
+        
+            elif move_1 == 1:
+                        if self.enemigo1.rect.left >= 5:
+                                self.enemigo1.rect.left = self.enemigo1.rect.left - self.enemigo1.velocity
+                                if self.enemigo1.rect.left < 5:
+                                                img_1 = "carroe2.png"
+                                                self.enemigo1.imagen_enemigo = pygame.image.load (img_1)
+                                                self.enemigo1.imagen_enemigo = pygame.transform.scale(self.enemigo1.imagen_enemigo,(45,45))
+                                                move_1 = 0
+#_______________________________________________________________________________________________________________________________________________________________#                                                
+
+            if move_2 == 0:
+                        if self.enemigo2.rect.left <= 1299:
+                                self.enemigo2.rect.left = self.enemigo2.rect.left + self.enemigo2.velocity
+                        
+                                
+                                if self.enemigo2.rect.left > 1299:
+                                        img_2 = "carroe3.png"
+                                        self.enemigo2.imagen_enemigo = pygame.image.load (img_2)
+                                        self.enemigo2.imagen_enemigo = pygame.transform.scale(self.enemigo2.imagen_enemigo,(45,45))
+                                        move_2 = 1
+        
+            elif move_2 == 1:
+                        if self.enemigo2.rect.left >= 5:
+                                self.enemigo2.rect.left = self.enemigo2.rect.left - self.enemigo2.velocity
+                                if self.enemigo2.rect.left < 5:
+                                                img_2 = "carroe2.png"
+                                                self.enemigo2.imagen_enemigo = pygame.image.load (img_2)
+                                                self.enemigo2.imagen_enemigo = pygame.transform.scale(self.enemigo2.imagen_enemigo,(45,45))
+                                                move_2 = 0
+#__________________________________________________________________________________________________________________________________________________________________#
+
+
+            if move_3 == 0:
+                        if self.enemigo3.rect.left >= 5:
+                                self.enemigo3.rect.left = self.enemigo3.rect.left - self.enemigo3.velocity
+                        
+                                
+                                if self.enemigo3.rect.left < 5:
+                                        img_3 = "carroe2.png"
+                                        self.enemigo3.imagen_enemigo = pygame.image.load (img_3)
+                                        self.enemigo3.imagen_enemigo = pygame.transform.scale(self.enemigo3.imagen_enemigo,(45,45))
+                                        move_3 = 1
+                                        
+        
+            elif move_3 == 1:
+                        if self.enemigo3.rect.left <= 1299:
+                                self.enemigo3.rect.left = self.enemigo3.rect.left + self.enemigo3.velocity
+                                
+                                if self.enemigo3.rect.left > 1299:
+                                                img_3 = "carroe3.png"
+                                                self.enemigo3.imagen_enemigo = pygame.image.load (img_3)
+                                                self.enemigo3.imagen_enemigo = pygame.transform.scale(self.enemigo3.imagen_enemigo,(45,45))
+                                                move_3 = 0
+                                
+#__________________________________________________________________________________________________________________________________________________________________#
+
+            if move_4 == 0:
+                        if self.enemigo4.rect.left >= 5:
+                                self.enemigo4.rect.left = self.enemigo4.rect.left - self.enemigo4.velocity
+                        
+                                
+                                if self.enemigo4.rect.left < 5:
+                                        img_4 = "carroe2.png"
+                                        self.enemigo4.imagen_enemigo = pygame.image.load (img_4)
+                                        self.enemigo4.imagen_enemigo = pygame.transform.scale(self.enemigo4.imagen_enemigo,(45,45))
+                                        move_4 = 1
+        
+            elif move_4 == 1:
+                        if self.enemigo4.rect.left <= 1299:
+                                self.enemigo4.rect.left = self.enemigo4.rect.left + self.enemigo4.velocity
+                                if self.enemigo4.rect.left > 1299:
+                                                img_4 = "carroe3.png"
+                                                self.enemigo4.imagen_enemigo = pygame.image.load (img_4)
+                                                self.enemigo4.imagen_enemigo = pygame.transform.scale(self.enemigo4.imagen_enemigo,(45,45))
+                                                move_4 = 0                                  
+
+#__________________________________________________________________________________________________________________________________________________________________#
+
+            if move_5 == 0:
+                        if self.enemigo5.rect.top <= 700:
+                                self.enemigo5.rect.top = self.enemigo5.rect.top + self.enemigo5.velocity
+                        
+                                
+                                if self.enemigo5.rect.top > 700:
+                                        img_5 = "carroe1.png"
+                                        self.enemigo5.imagen_enemigo = pygame.image.load (img_5)
+                                        self.enemigo5.imagen_enemigo = pygame.transform.scale(self.enemigo5.imagen_enemigo,(45,45))
+                                        move_5 = 1
+        
+            elif move_5 == 1:
+                        if self.enemigo5.rect.top >= 3:
+                                self.enemigo5.rect.top = self.enemigo5.rect.top - self.enemigo5.velocity
+                                if self.enemigo5.rect.top < 3:
+                                                img_5 = "carroe4.png"
+                                                self.enemigo5.imagen_enemigo = pygame.image.load (img_5)
+                                                self.enemigo5.imagen_enemigo = pygame.transform.scale(self.enemigo5.imagen_enemigo,(45,45))
+                                                move_5 = 0 
+                                                
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -400,6 +603,8 @@ class Game:
                                             x = self.player.rect.x + 15
                                             y = self.player.rect.y
                                             self.player.Disparar(x,y)
+                                            Disparo_son = pygame.mixer.Sound("disparo de nave.wav")
+                                            Disparo_son.play()
                                             
                                             #Se define un sonido al disparo de la nave
                                             #Disparo_son = pygame.mixer.Sound("disparo de nave.wav")
@@ -408,7 +613,7 @@ class Game:
                                         # Si presiona p pausará el juego
                                         if event.key == pygame.K_p:
                                                 pausado = True
-                                                
+                                         
                                         
                                         
             # Este evento capta si el cliente deja presionado una tecla    
@@ -443,18 +648,25 @@ class Game:
                     Imagen_Disparo_Jugador = "proyectil_v3.png"
                     # Cambiara la imagen del jugador hacia donde este yendo
                     imagenC = "carro2.png"
-                    self.player = Player(self.player.rect.x, self.player.rect.y, imagenC)
 
                 # Se actualiza la imagen del jugador en el otro cliente
             self.player2 = Player(self.player2.rect.x, self.player2.rect.y, imagenC2)
+            self.player = Player(self.player.rect.x, self.player.rect.y, imagenC)
+            #self.enemigo1 = Enemigos(self.enemigo1.rect.top, self.enemigo1.rect.left, img_1)
+            #self.enemigo2 = Enemigos(self.enemigo2.rect.top, self.enemigo2.rect.left, img_2)
+            #self.enemigo3 = Enemigos(self.enemigo3.rect.top, self.enemigo3.rect.left, img_3)
+            #self.enemigo4 = Enemigos(self.enemigo4.rect.top, self.enemigo4.rect.left, img_4)
+            #self.enemigo5 = Enemigos(self.enemigo5.rect.top, self.enemigo5.rect.left, img_5)
 
+            
+            
             if keys[pygame.K_LEFT]:
                 if self.player.rect.x >= self.player.velocity:
                     self.player.rect.x -= self.player.velocity
                     direccion = 4
                     Imagen_Disparo_Jugador = "proyectil_v3.png"
                     imagenC = "carro3.png"
-                    self.player = Player(self.player.rect.x, self.player.rect.y, imagenC)
+                    
            
 
             if keys[pygame.K_UP]:
@@ -463,8 +675,8 @@ class Game:
                     direccion = 0 
                     Imagen_Disparo_Jugador = "proyectil_v2.png"
                     imagenC = "carro1.png"
-                    self.player = Player(self.player.rect.x, self.player.rect.y, imagenC)
-         
+                    
+
 
             if keys[pygame.K_DOWN]:
                 if self.player.rect.y <= 723 - self.player.velocity:
@@ -472,16 +684,23 @@ class Game:
                     direccion = 1
                     Imagen_Disparo_Jugador = "proyectil_v2.png"
                     imagenC = "carro4.png"
-                    self.player = Player(self.player.rect.x, self.player.rect.y, imagenC)
 
             # Send Network Stuff
             #Aqui se le asignan las variables al jugador 2 del otro cliente para que sean enviadas al servidor
-            self.player2.rect.x, self.player2.rect.y, segundos, minutos, disparo_2, mina_indicacion, Num_x, Num_y, puntos_J2, imagenC2, pausado_J2, vida_player2, name_J2, direccion2 = self.parse_data(self.send_data())
+            self.player2.rect.x, self.player2.rect.y, segundos, minutos, disparo_2, mina_indicacion2, mina_x, mina_y, puntos_J2, imagenC2, pausado_J2, vida_player2, name_J2, direccion2,img_1, img_2, img_3, img_4, img_5, move_1, move_2, move_3, move_4, move_5 = self.parse_data(self.send_data())
 
             # Update Canvas
             self.screen.blit(self.fondo, (0, 0))
             self.player.Dibujar(self.screen)
             self.player2.Dibujar(self.screen)
+
+            self.enemigo1.Dibujar(self.screen)
+            self.enemigo2.Dibujar(self.screen)
+            self.enemigo3.Dibujar(self.screen)
+            self.enemigo4.Dibujar(self.screen)
+            self.enemigo5.Dibujar(self.screen)
+
+
             self.MINAS.comportamiento(self.tiempo)
 
 # Esta variable hara que esten sacando numeros al azar
@@ -490,24 +709,53 @@ class Game:
             # Si dibujar mina es igual a aparicion ejecutara la clase de mina para que se dibuje en ambos clientes
             
             if dibujar_mina == self.MINAS.aparicion_mina:
-                        x = self.MINAS.rect.left
-                        y = self.MINAS.rect.top
-                        self.MINAS.aparicion(x,y)
                         mina_indicacion = 1
+                        mina_x = self.MINAS.rect.left
+                        mina_y = self.MINAS.rect.top
+                        x = mina_x
+                        y = mina_y
+                        mina_indicacion = 0
+                        self.MINAS.aparicion(x,y)
+                        
+
+                        
+            
+            
         # Si el tamaño de la lista disparo es mayor a 0 está dibujara continuamente los disparos
                 
-            if len(self.player.lista_disparo) > 0:
-                    for x in self.player.lista_disparo:
+            if len(lista_disparo) > 0:
+                    for x in lista_disparo:
                         x.Dibujar(self.screen)
-                        x.Trayecto()
+                        x.Trayecto(direccion)
+                        disparo = 0
                         if x.rect.top < -20:
-                                self.player.lista_disparo.remove(x)
+                                lista_disparo.remove(x)
                         # Capta si el disparo coliciona con el otro jugados, y si coliciona se sumaran 4 puntos al jugador
                         elif x.rect.colliderect(self.player2.rect):
                                         vida_player -= 5
                                         puntos_J1 += 4
-                                        self.player.lista_disparo.remove(x)
+                                        lista_disparo.remove(x)
+                                        
+                        elif x.rect.colliderect(self.enemigo1.rect):
+                                        lista_disparo.remove(x)
 
+                        elif x.rect.colliderect(self.enemigo2.rect):
+                                        lista_disparo.remove(x)
+
+                        elif x.rect.colliderect(self.enemigo3.rect):
+                                        lista_disparo.remove(x)
+
+                        elif x.rect.colliderect(self.enemigo4.rect):
+                                        lista_disparo.remove(x)
+
+                        elif x.rect.colliderect(self.enemigo5.rect):
+                                        lista_disparo.remove(x)
+
+                        for Aparicion in self.MINAS.lista_mina:
+                                if x.rect.colliderect(Aparicion.rect):
+                                                self.MINAS.lista_mina.remove(Aparicion)
+                                                lista_disparo.remove(x)
+                                                
                 
                                                 
             if minutos == 2:
@@ -515,7 +763,7 @@ class Game:
 
             if dibujar_meta == True:
                     
-                        self.screen.blit(meta_tam, (600, 3))
+                        self.META.Dibujar(self.screen)
 
         # Si la vida del jugador 2 es 0 muestra la ventana indicando cual jugador murio y restablece todos los datos a 0 para reiniciar el juego              
                             
@@ -547,28 +795,71 @@ class Game:
             if disparo_2 == 1:
                 x = self.player2.rect.x + 15
                 y = self.player2.rect.y
-                self.player2.Disparar(x,y)
-                disparo = 0
+                self.player2.Disparar2(x,y)
+                Disparo_son = pygame.mixer.Sound("disparo de nave.wav")
+                Disparo_son.play()
+                
 
          # Indica cuando se deben dibujar las minas en ambos clientes
 
-            if mina_indicacion == 1:
-                x = self.MINAS.rect.left
-                y = self.MINAS.rect.top
+            if mina_indicacion2 == 1:
+                x = mina_x
+                y = mina_y
                 self.MINAS.aparicion(x,y)
-                mina_indicacion = 0
+               
+                
         
-        
+            if self.player.rect.colliderect(self.META.rect):
+                    puntos_J1 = 0
+                    vida_player = 100
+                    vida_player2 = 100
+                    puntos_J2 = 0
+                    minutos = 0
+                    segundos = 0
+                    muerto = name
+                    pygame.display.quit()
+                    pygame.quit()
+                    win()
 
-                                
-            if len(self.player2.lista_disparo) > 0:
-                    for x in self.player2.lista_disparo:
-                        x.Dibujar(self.screen)
-                        x.Trayecto2()
-                        if x.rect.top < -20:
-                                self.player2.lista_disparo.remove(x)
+            if self.player2.rect.colliderect(self.META.rect):
+                    puntos_J1 = 0
+                    vida_player = 100
+                    vida_player2 = 100
+                    puntos_J2 = 0
+                    minutos = 0
+                    segundos = 0
+                    muerto = name
+                    pygame.display.quit()
+                    pygame.quit()
+                    win()
+
                     
+            if len(lista_disparo2) > 0:
+                    for x in lista_disparo2:
+                        x.Dibujar(self.screen)
+                        x.Trayecto2(direccion2)
+                        if x.rect.top < -20:
+                                lista_disparo2.remove(x)
                                 
+                        elif x.rect.colliderect(self.player.rect):
+                                        vida_player -= 5
+                                        lista_disparo2.remove(x)
+                                        
+                        elif x.rect.colliderect(self.enemigo1.rect):
+                                        lista_disparo2.remove(x)
+
+                        elif x.rect.colliderect(self.enemigo2.rect):
+                                        lista_disparo2.remove(x)
+
+                        elif x.rect.colliderect(self.enemigo3.rect):
+                                        lista_disparo2.remove(x)
+
+                        elif x.rect.colliderect(self.enemigo4.rect):
+                                        lista_disparo2.remove(x)
+
+                        elif x.rect.colliderect(self.enemigo5.rect):
+                                        lista_disparo2.remove(x)
+            
            # if len(self.MINAS.lista_mina) > 0:
             if len(self.MINAS.lista_mina) > 0:
                 for x in self.MINAS.lista_mina:
@@ -587,7 +878,7 @@ class Game:
         pygame.quit()
     def send_data(self):
 
-        data = str(self.net.id) + ":" + str(self.player.rect.x) + "," + str(self.player.rect.y) + "," + str(segundos) + "," + str(minutos) + "," + str(disparo) + "," + str(mina_indicacion) + "," + str(Num_x) + "," + str(Num_y) + "," + str(puntos_J1) + "," + str(imagenC) + "," + str(pausado) + "," + str(vida_player) + "," + str(name) + "," + str(direccion)
+        data = str(self.net.id) + ":" + str(self.player.rect.x) + "," + str(self.player.rect.y) + "," + str(segundos) + "," + str(minutos) + "," + str(disparo) + "," + str(mina_indicacion) + "," + str(mina_x) + "," + str(mina_y) + "," + str(puntos_J1) + "," + str(imagenC) + "," + str(pausado) + "," + str(vida_player) + "," + str(name) + "," + str(direccion) + "," + str(img_1) + "," + str(img_2) + "," + str(img_3) + "," + str(img_4) + "," + str(img_5) + "," + str(move_1) + "," + str(move_2) + "," + str(move_3) + "," + str(move_4) + "," + str(move_5)
         reply = self.net.send(data)
         #print (data)
         return reply
@@ -596,7 +887,7 @@ class Game:
     def parse_data(data):
         try:
             d = data.split(":")[1].split(",")
-            return int(d[0]), int(d[1]), int(d[2]), int(d[3]), int(d[4]), int(d[5]), int(d[6]), int(d[7]), int(d[8]), str(d[9]), bool(d[10]), int(d[11]), str(d[12]), int(d[13])
+            return int(d[0]), int(d[1]), int(d[2]), int(d[3]), int(d[4]), int(d[5]), int(d[6]), int(d[7]), int(d[8]), str(d[9]), bool(d[10]), int(d[11]), str(d[12]), int(d[13]), str(d[14]), str(d[15]), str(d[16]), str(d[17]), str(d[18]), int(d[19]), int(d[20]), int(d[21]), int(d[22]), int(d[23])
         except:
             return 0,0
 

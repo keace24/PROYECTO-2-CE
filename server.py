@@ -18,7 +18,7 @@ s.listen(2)
 print("Waiting for a connection")
 
 currentId = "0"
-pos = ["0:50,50,0,0,0,0,0,0,0,0,False,100,name,0", "1:100,100,0,0,0,0,0,0,0,carro1.png,False,100,name,0"]
+pos = ["0:50,50,0,0,0,0,0,0,0,carro1.png,False,100,name,0,carroe2.png,carroe2.png,carroe3.png,carroe3.png,carroe4.png,0,0,0,0,0", "1:100,100,0,0,0,0,0,0,0,carro1.png,False,100,name,0,carroe2.png,carroe2.png,carroe3.png,carroe3.png,carroe4.png,0,0,0,0,0"]
 mina = []
 def threaded_client(conn):
     global currentId, pos
@@ -37,7 +37,7 @@ def threaded_client(conn):
                 reply_ = pickle.dumps(mina)
                 conn.sendall(reply_)
             else:
-               # print("Recieved: " + reply)
+                print("Recieved: " + reply)
                 arr = reply.split(":")
                 id = int(arr[0])
                 pos[id] = reply
@@ -47,7 +47,7 @@ def threaded_client(conn):
                 if id == 1: nid = 0
 
                 reply = pos[nid][:]
-              #  print("Sending: " + reply)
+                print("Sending: " + reply)
                 reply_ = pickle.dumps(reply)
                 conn.sendall(reply_)
         except:

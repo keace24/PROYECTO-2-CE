@@ -15,7 +15,7 @@ except socket.error as e:
     print(str(e))
 
 s.listen(2)
-print("Waiting for a connection")
+print("Esperando conexion")
 
 currentId = "0"
 pos = ["0:50,50,0,0,0,0,0,0,0,carro1.png,False,100,name,0,carroe2.png,carroe2.png,carroe3.png,carroe3.png,carroe4.png,0,0,0,0,0", "1:100,100,0,0,0,0,0,0,0,carro1.png,False,100,name,0,carroe2.png,carroe2.png,carroe3.png,carroe3.png,carroe4.png,0,0,0,0,0"]
